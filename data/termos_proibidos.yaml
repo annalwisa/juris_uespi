@@ -1,0 +1,111 @@
+# Lista editável de termos bloqueados (normalização remove acentos e troca leetspeak).
+# palavras: match com limite de palavra | frases: match em qualquer parte do texto
+
+palavras:
+  # Baixo calão (PT-BR)
+  - caralho
+  - porra
+  - merda
+  - bosta
+  - puta
+  - puto
+  - foder
+  - fodido
+  - fudido
+  - fdp
+  - pqp
+  - vsf
+  - vtf
+  - vtnc
+  - vtmnc
+  - cacete
+  - arrombado
+  - arrombada
+  - babaca
+  - otario
+  - otária
+  - otaria
+  - escroto
+  - escrota
+  - punheta
+  - broxa
+  - corno
+  - desgracado
+  - desgraçado
+  - desgracada
+  - desgraçada
+  - krl
+  - kct
+  - pnc
+  - cu
+  # Homofóbicos / transfóbicos
+  - viado
+  - viada
+  - bicha
+  - veado
+  - veada
+  - sapatao
+  - sapatão
+  - traveco
+  - traveca
+  - travecao
+  - travesti de esgoto
+  # Racistas e xenofóbicos
+  - macaco
+  - macaca
+  - crioulo
+  - crioula
+  - neguinho
+  - neguinha
+  - negao
+  - negão
+  - preto imundo
+  - japa de merda
+  - branquelo
+  - branquela
+  # Capacitismo / insultos graves
+  - retardado
+  - retardada
+  - retarda
+  - debil mental
+  - débil mental
+  # Inglês (comum em mensagens)
+  - fuck
+  - fucking
+  - shit
+  - bitch
+  - asshole
+  - nigger
+  - nigga
+  - faggot
+  - fag
+
+frases:
+  - filho da puta
+  - filha da puta
+  - filho da peste
+  - vai se foder
+  - vai tomar no cu
+  - vai tomar no c
+  - toma no cu
+  - toma no c
+  - foda se
+  - foda-se
+  - pau no cu
+  - pau no seu cu
+  - seu cu
+  - sua puta
+  - sua mae
+  - sua mãe
+  - vai se fuder
+  - vai te foder
+  - se foder
+  - se fuder
+  - que merda
+  - que porra
+  - puta que pariu
+  - puta que o pariu
+  - vai pro inferno
+  - morre diabo
+  - seu lixo
+  - seu lixo humano

@@ -1,0 +1,66 @@
+# Metadados dos PDFs em data/docs/
+# status: vigente | desatualizado | revogado
+# revogado = não entra na busca
+# desatualizado = entra, mas o modelo prioriza documentos mais novos
+
+documents:
+  Guia_do_Estudante_UESPI_2019.pdf:
+    year: 2019
+    status: desatualizado
+    tipo: guia
+    nota: "Guia de 2019; nomes de reitoria e procedimentos podem estar desatualizados — busca web complementa."
+
+  PDI_FINAL_GRAFICA_2017.pdf:
+    year: 2017
+    status: desatualizado
+    tipo: planejamento
+    nota: "PDI 2017; gestão e planejamento podem ter mudado."
+
+  RESOLUCAO-CONAPLAN-001-2014 (1).pdf:
+    year: 2014
+    status: desatualizado
+    substituido_por: RESOLUCAO-CONAPLAN-001-DE-2025.pdf
+
+  RESOLUCAO-CONAPLAN-001-DE-2025.pdf:
+    year: 2025
+    status: vigente
+    tipo: resolucao
+
+  Resolucao-CEPEX-no-20-2016.pdf:
+    year: 2016
+    status: desatualizado
+    tipo: resolucao
+
+  RESOLUCAO-ESTAGIO-DOCENCIA-CEPEX-053-2017 (1).pdf:
+    year: 2017
+    status: vigente
+    tipo: resolucao
+
+  Regimento.pdf:
+    year: 2020
+    status: vigente
+    tipo: regimento
+    nota: "Ajuste o ano se sua edição do regimento for outra."
+
+  RESOLUCAO_CEPEX_008_de_2026.pdf:
+    year: 2026
+    status: vigente
+    tipo: resolucao
+
+  Edital_009_2026_PROP_UESPI-PIBIC-PIBITI.pdf:
+    year: 2026
+    status: vigente
+    tipo: edital
+    nota: "PIBIC e PIBIT — valor da bolsa, vigência e condições. PROP."
+
+  SEI_GOV-PI-017643752-EditalPIBEU.pdf:
+    year: 2026
+    status: vigente
+    tipo: edital
+    nota: "PIBEU — valor da bolsa, vigência e condições."
+
+  Edita-de-Monitorias.pdf:
+    year: 2026
+    status: vigente
+    tipo: edital
+    nota: "Edital de monitorias — valor, vigência, requisitos e inscrição."

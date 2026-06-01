@@ -1,0 +1,49 @@
+# Campi e aliases para busca web (coordenadores por campus)
+# Adicione nomes como aparecem no site da UESPI
+
+campi:
+  - nome: Teresina
+    aliases: [teresina, sede, campus teresina]
+  - nome: Piripiri
+    aliases: [piripiri]
+  - nome: Picos
+    aliases: [picos]
+  - nome: Floriano
+    aliases: [floriano]
+  - nome: Parnaíba
+    aliases: [parnaíba, parnaiba]
+  - nome: Bom Jesus
+    aliases: [bom jesus]
+  - nome: São Raimundo Nonato
+    aliases: [são raimundo nonato, sao raimundo nonato, srn]
+  - nome: Campo Maior
+    aliases: [campo maior]
+  - nome: São João do Piauí
+    aliases: [são joão do piauí, sao joao do piaui]
+  - nome: Valença do Piauí
+    aliases: [valença do piauí, valenca do piaui, valença, valenca]
+  - nome: Corrente
+    aliases: [corrente]
+  - nome: Oeiras
+    aliases: [oeiras]
+  - nome: Paulistana
+    aliases: [paulistana]
+  - nome: União
+    aliases: [união, uniao]
+  - nome: Altos
+    aliases: [altos]
+
+# Palavras que indicam pergunta sobre pessoa/cargo no curso (dispara busca web)
+cargos_curso:
+  - coordenador
+  - coordenadora
+  - coordenação
+  - coordenacao
+  - vice-coordenador
+  - vice-coordenadora
+  - diretor do curso
+  - diretora do curso
+  - secretário do curso
+  - secretaria do curso
+  - chefe de departamento
+  - chefe do departamento

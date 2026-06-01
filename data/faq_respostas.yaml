@@ -1,0 +1,35 @@
+# Respostas fixas (rápidas) — ajuste valores e textos aqui sem alterar código
+
+bolsa_pesquisa_monitoria_reais: 700
+
+faltas_percentual_maximo: 25
+frequencia_minima_percentual: 75
+
+faqs:
+  faltas:
+    - "maximo de falta"
+    - "máximo de falta"
+    - "numero maximo de falta"
+    - "número máximo de falta"
+    - "quantas faltas"
+    - "limite de falta"
+    - "percentual de falta"
+    - "25% de falta"
+    - "reprovar por falta"
+    - "frequencia minima"
+    - "frequência mínima"
+
+  bolsa_valor:
+    - "valor da bolsa"
+    - "valor bolsa"
+    - "quanto paga a bolsa"
+    - "quanto e a bolsa"
+    - "quanto é a bolsa"
+    - "bolsa de pesquisa"
+    - "bolsa pesquisa"
+    - "bolsa de monitoria"
+    - "bolsa monitoria"
+    - "monitoria"
+    - "700 reais"
+    - "remuneracao da bolsa"
+    - "remuneração da bolsa"
