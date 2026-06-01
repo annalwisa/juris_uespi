@@ -1,5 +1,4 @@
 """Mensagem de status da base documental e integrações."""
-
 import json
 
 from chatbot.chain import web_search_status_label
