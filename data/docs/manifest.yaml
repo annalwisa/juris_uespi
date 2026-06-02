@@ -64,3 +64,27 @@ documents:
     status: vigente
     tipo: edital
     nota: "Edital de monitorias — valor, vigência, requisitos e inscrição."
+
+  LEI_11788-Lei-do-Estagio.pdf:
+    year: 2008
+    status: vigente
+    tipo: lei
+    nota: "Lei Federal 11.788/2008 — Lei do Estágio (norma nacional, base legal para estágios de estudantes)."
+
+  RESOLUCAO-ESTAGIO.pdf:
+    year: 2021
+    status: vigente
+    tipo: resolucao
+    nota: "Resolução CEPEX 004/2021 — regulamenta os Estágios dos cursos de Graduação da UESPI."
+
+  PORTARIA.pdf:
+    year: 2020
+    status: vigente
+    tipo: portaria
+    nota: "Portaria 329/2020 (PREG/UESPI) — aproveitamento da carga horária da Residência Pedagógica (CAPES) como Estágio Curricular Obrigatório."
+
+  Procedimentos-para-Abertura-de-Convenio2.pdf:
+    year: 2024
+    status: vigente
+    tipo: procedimento
+    nota: "Procedimento oficial PREG/DAP/DES para abertura de convênio de estágio entre empresa e UESPI (documentos, e-mail convenio@preg.uespi.br, fluxo de assinatura)."

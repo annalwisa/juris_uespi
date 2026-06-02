@@ -8,7 +8,6 @@ from pathlib import Path
 
 import yaml
 
-from chatbot.alerts import ABSENCE_ALERT
 from chatbot.citations import regimento_link_markdown
 from chatbot.config import PROP_NOME, ROOT, SIGPROP_PESQUISA_URL
 
@@ -107,21 +106,14 @@ def _response_faltas_scenario_days(days: int, cfg: dict) -> str:
     pct = cfg["faltas_percentual_maximo"]
     freq = cfg["frequencia_minima_percentual"]
     reg = regimento_link_markdown()
-    reg_min, reg_max = days, days * 2
 
     return f"""Você perguntou sobre **{days} dias** sem comparecer. O limite do Regimento da UESPI é calculado sobre as **faltas registradas no SIGAA** (em geral, até **{pct}%** da carga horária da disciplina — mínimo **{freq}%** de frequência), **não sobre o número de dias** que você faltou.
 
-**{days} dias** podem equivaler a:
-- **~{reg_min} faltas** no boletim, se a disciplina tem **uma aula** por dia de encontro;
-- **até ~{reg_max} faltas**, se há **duas aulas no mesmo dia** e cada ausência gera dois registros.
-
 **O que fazer:** abra o registro da disciplina no SIGAA, some as **faltas lançadas** e compare com **{pct}% × CH** (não use só a contagem de dias).
 
-**Exemplos** (substitua pela CH real da sua disciplina):
+**Exemplos** (substitua pela CH real da sua disciplina, considerando **{days}** faltas no registro):
 
-{_examples_table([reg_min, reg_max], pct)}
-
-{ABSENCE_ALERT}
+{_examples_table([days], pct)}
 
 Artigos e exceções: {reg} ou a coordenação do seu curso."""
 
@@ -138,8 +130,6 @@ def _response_faltas_scenario_registered(count: int, cfg: dict) -> str:
 **Exemplos** (substitua pela CH real da sua disciplina):
 
 {_examples_table([count], pct)}
-
-{ABSENCE_ALERT}
 
 Artigos e exceções: {reg} ou a coordenação do seu curso."""
 
@@ -158,8 +148,6 @@ def _response_faltas(cfg: dict) -> str:
     pct = cfg["faltas_percentual_maximo"]
     freq = cfg["frequencia_minima_percentual"]
     return f"""O **número máximo de faltas** para não ser reprovado por frequência é de **{pct}%** da carga horária da disciplina — ou seja, é necessário ter no mínimo **{freq}%** de frequência (conforme Regimento da UESPI).
-
-{ABSENCE_ALERT}
 
 Para o artigo exato e exceções, consulte o {regimento_link_markdown()} ou a coordenação do seu curso."""
 

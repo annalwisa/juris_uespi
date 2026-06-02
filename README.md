@@ -9,6 +9,7 @@ Assistente para tirar dúvidas sobre a **Universidade Estadual do Piauí (UESPI)
 - O modelo prioriza normas mais recentes e avisa quando usa fonte antiga.
 - **SIGAA** (oficial): lista de cursos de graduação com coordenador, sede e modalidade — [SIGAA público](https://sigaa.uespi.br/sigaa/public/curso/lista.jsf?nivel=G&aba=p-ensino). Cache local 24h; atualizar com `python -m chatbot.sigaa_cli`.
 - **Busca web** (`ddgs`): reitoria e complemento. Modo: `WEB_SEARCH_MODE=auto` no `.env`.
+- **Estágios supervisionados** (PREG/DAP/DES): cobertos pelos PDFs indexados (Lei 11.788/2008, Resolução CEPEX 004/2021, Portaria 329/2020, Procedimento de Convênio) + página oficial [uespi.br/preg-dap-des](https://uespi.br/preg-dap-des/) e [planilha pública de instituições conveniadas](https://docs.google.com/spreadsheets/d/1G6es_rE9ZhGXhaiJ2LwDikbsv_ejPAV91GYAZARx3H0/edit?pli=1&gid=659220882#gid=659220882). E-mail para abrir convênio: `convenio@preg.uespi.br`.
 
 ## Configuração
 

@@ -19,6 +19,8 @@ from chatbot.about import (
 )
 from chatbot.faq import get_faq_response, is_monitoria_detail_question
 from chatbot.alerts import get_contextual_alerts
+from chatbot.estagio import enhance_estagio_query, get_estagio_context
+from chatbot.jubilacao import enhance_jubilacao_query, get_jubilacao_context
 from chatbot.programs import enhance_retrieval_query, get_programs_context
 from chatbot.guard import is_uespi_related, refusal_response
 from chatbot.moderation import is_message_allowed, moderation_response
@@ -54,6 +56,12 @@ RAG_PROMPT = ChatPromptTemplate.from_messages(
 
 ## Programas de bolsas (PIBIC, PIBIT, PIBEU)
 {programs_context}
+
+## Estágio supervisionado (Lei 11.788/2008, Resolução CEPEX 004/2021, PREG/DAP/DES, planilha de conveniadas)
+{estagio_context}
+
+## Jubilação na UESPI (formalmente: Cancelamento da Matrícula Institucional — Regimento, Art. 46)
+{jubilacao_context}
 
 Pergunta atual do usuário:
 {question}""",
@@ -95,6 +103,8 @@ def answer_with_rag(
     search_query = enhance_retrieval_query(
         question, build_retrieval_query(question, history)
     )
+    search_query = enhance_estagio_query(question, search_query)
+    search_query = enhance_jubilacao_query(question, search_query)
     if is_monitoria_detail_question(question):
         search_query = f"{search_query} Edita-de-Monitorias edital monitoria requisitos inscricao"
 
@@ -130,6 +140,8 @@ def answer_with_rag(
     lc_history = to_langchain_messages(history)
     alerts = get_contextual_alerts(question, history)
     programs_context = get_programs_context(question, history)
+    estagio_context = get_estagio_context(question, history)
+    jubilacao_context = get_jubilacao_context(question, history)
 
     chain = RAG_PROMPT | _llm() | StrOutputParser()
     return chain.invoke(
@@ -140,6 +152,8 @@ def answer_with_rag(
             "web_context": web_context,
             "alerts": alerts,
             "programs_context": programs_context,
+            "estagio_context": estagio_context,
+            "jubilacao_context": jubilacao_context,
             "question": question,
         }
     )

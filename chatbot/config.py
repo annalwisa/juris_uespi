@@ -60,6 +60,21 @@ SIGPROP_PESQUISA_URL = os.getenv(
 )
 PROP_NOME = "Pró-Reitoria de Pesquisa e Pós-Graduação (PROP)"
 
+# Estágio Supervisionado — PREG / DAP / DES
+ESTAGIO_DES_URL = os.getenv(
+    "ESTAGIO_DES_URL",
+    "https://uespi.br/preg-dap-des/",
+)
+ESTAGIO_CONVENIADAS_PLANILHA_URL = os.getenv(
+    "ESTAGIO_CONVENIADAS_PLANILHA_URL",
+    "https://docs.google.com/spreadsheets/d/1G6es_rE9ZhGXhaiJ2LwDikbsv_ejPAV91GYAZARx3H0/edit?pli=1&gid=659220882#gid=659220882",
+)
+ESTAGIO_CONVENIO_EMAIL = os.getenv("ESTAGIO_CONVENIO_EMAIL", "convenio@preg.uespi.br")
+ESTAGIO_DAP_EMAIL = os.getenv("ESTAGIO_DAP_EMAIL", "dap@preg.uespi.br")
+ESTAGIO_DAP_TELEFONE = os.getenv("ESTAGIO_DAP_TELEFONE", "(86) 3213-7441")
+PREG_NOME = "Pró-Reitoria de Ensino de Graduação (PREG)"
+DES_NOME = "Divisão de Estágio Supervisionado (DES) — vinculada ao DAP/PREG"
+
 WEB_SEARCH_MODE = os.getenv("WEB_SEARCH_MODE", "auto").lower()  # auto | always | off
 WEB_SEARCH_MAX_RESULTS = int(os.getenv("WEB_SEARCH_MAX_RESULTS", "5"))
 TAVILY_API_KEY = os.getenv("TAVILY_API_KEY")  # opcional; busca mais estável que DuckDuckGo
@@ -79,9 +94,10 @@ Regras gerais:
 - Se não houver base suficiente, indique secretaria, coordenação ou uespi.br.
 - Não invente normas, prazos, editais ou telefones.
 - Recuse educadamente perguntas que não tenham relação com a UESPI.
-- Em perguntas sobre **faltas** ou **frequência**, inclua sempre o alerta fornecido no bloco "Alertas": disciplinas com duas aulas no mesmo dia podem registrar **uma ausência como duas faltas**.
 - Para **PIBIC, PIBIT e PIBEU**: use o bloco "Programas de bolsas", os **editais indexados** (valor, vigência, condições) e o **SIGPROP** ({SIGPROP_PESQUISA_URL}) para projetos de pesquisa — responsabilidade da **PROP**.
 - Respostas rápidas fixas (FAQ) já cobrem **valor R$ 700** (bolsas pesquisa/monitoria) e **máximo 25% de faltas**; não contradiga esses valores salvo edital explícito nos PDFs que diga o contrário.
+- Para **estágio supervisionado, convênio com empresa, estagiário, instituição conveniada**: use o bloco "Estágio supervisionado" e os PDFs indexados (Lei 11.788/2008, Resolução CEPEX 004/2021 da UESPI, Portaria 329/2020 sobre Residência Pedagógica e o procedimento de abertura de convênio do DAP/DES). Sempre cite a página oficial da DES ({ESTAGIO_DES_URL}) e, para conferir se uma empresa já é conveniada, indique a planilha oficial ({ESTAGIO_CONVENIADAS_PLANILHA_URL}). E-mail de convênio: {ESTAGIO_CONVENIO_EMAIL}.
+- Para perguntas sobre **"jubilação" / "ser jubilado" / "perder a vaga"**: use o bloco "Jubilação na UESPI". O termo formal no Regimento é **Cancelamento da Matrícula Institucional (Art. 46)** — sempre traduza para esse nome, liste as hipóteses (I a V) e cite o artigo. Para pós-graduação, use a Resolução CEPEX 005/2021 (stricto sensu) ou a Resolução Consun 004/2022 (especialização). Não invente prazos de integralização: eles dependem do PPC do curso.
 """
 
 CHAT_HISTORY_MAX_MESSAGES = int(os.getenv("CHAT_HISTORY_MAX_MESSAGES", "20"))
