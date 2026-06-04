@@ -18,6 +18,7 @@ from chatbot.about import (
     is_assistant_identity_question,
 )
 from chatbot.faq import get_faq_response, is_monitoria_detail_question
+from chatbot.cursos import get_cursos_context
 from chatbot.alerts import get_contextual_alerts
 from chatbot.estagio import enhance_estagio_query, get_estagio_context
 from chatbot.jubilacao import enhance_jubilacao_query, get_jubilacao_context
@@ -47,6 +48,9 @@ RAG_PROMPT = ChatPromptTemplate.from_messages(
 
 ## SIGAA — cursos de graduação (coordenador, sede, modalidade — fonte oficial)
 {sigaa_context}
+
+## Cursos por campus e centro (a qual centro/CIES cada curso pertence: bacharelado, licenciatura, tecnólogo)
+{cursos_context}
 
 ## Busca na web (reitoria e complemento quando o SIGAA não bastar)
 {web_context}
@@ -139,6 +143,7 @@ def answer_with_rag(
 
     lc_history = to_langchain_messages(history)
     alerts = get_contextual_alerts(question, history)
+    cursos_context = get_cursos_context(question, history)
     programs_context = get_programs_context(question, history)
     estagio_context = get_estagio_context(question, history)
     jubilacao_context = get_jubilacao_context(question, history)
@@ -149,6 +154,7 @@ def answer_with_rag(
             "history": lc_history,
             "context": context,
             "sigaa_context": sigaa_context,
+            "cursos_context": cursos_context,
             "web_context": web_context,
             "alerts": alerts,
             "programs_context": programs_context,

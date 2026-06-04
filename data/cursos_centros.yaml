@@ -1,0 +1,223 @@
+# Cursos de graduação presencial da UESPI (regime regular) por campus e centro.
+# Fonte oficial: https://uespi.br/graduacao-inicio/ (Quadro 01).
+# Em Teresina (Campus Poeta Torquato Neto) cada curso pertence a um centro
+# específico (CCECA, CCHL, CCN, CCS, CCSA, CTU, CCA). Nos demais campi a oferta
+# é feita pelo CIES (Centro Integrado de Ensino Superior) do campus.
+# Cada curso traz seu grau: Bacharelado, Licenciatura, Tecnologia ou "Não informado"
+# (cursos que aparecem sem rótulo na página oficial).
+
+fonte: https://uespi.br/graduacao-inicio/
+
+campi:
+  - campus: Campus Poeta Torquato Neto
+    cidade: Teresina
+    centros:
+      - sigla: CCECA
+        nome: Centro de Ciências da Educação, Comunicação e Artes
+        cursos:
+          - { nome: Comunicação Social, grau: Bacharelado }
+          - { nome: Pedagogia, grau: Licenciatura }
+      - sigla: CCHL
+        nome: Centro de Ciências Humanas e Letras
+        cursos:
+          - { nome: Geografia, grau: Licenciatura }
+          - { nome: História, grau: Licenciatura }
+          - { nome: Letras Português, grau: Licenciatura }
+          - { nome: Letras Espanhol, grau: Licenciatura }
+          - { nome: Letras Inglês, grau: Licenciatura }
+          - { nome: Ciências Sociais, grau: Licenciatura }
+      - sigla: CCN
+        nome: Centro de Ciências da Natureza
+        cursos:
+          - { nome: Ciências Biológicas, grau: Licenciatura }
+          - { nome: Ciências Biológicas, grau: Bacharelado }
+          - { nome: Física, grau: Licenciatura }
+          - { nome: Matemática, grau: Licenciatura }
+          - { nome: Química, grau: Licenciatura }
+      - sigla: CCS
+        nome: Centro de Ciências da Saúde
+        cursos:
+          - { nome: Enfermagem, grau: Bacharelado }
+          - { nome: Fisioterapia, grau: Bacharelado }
+          - { nome: Medicina, grau: Bacharelado }
+          - { nome: Psicologia, grau: Bacharelado }
+          - { nome: Educação Física, grau: Licenciatura }
+      - sigla: CCSA
+        nome: Centro de Ciências Sociais Aplicadas
+        cursos:
+          - { nome: Administração, grau: Bacharelado }
+          - { nome: Biblioteconomia, grau: Bacharelado }
+          - { nome: Ciências Contábeis, grau: Bacharelado }
+          - { nome: Direito, grau: Bacharelado }
+          - { nome: Segurança Pública, grau: Bacharelado }
+          - { nome: Turismo, grau: Bacharelado }
+      - sigla: CTU
+        nome: Centro de Tecnologia e Urbanismo
+        cursos:
+          - { nome: Ciências da Computação, grau: Bacharelado }
+          - { nome: Engenharia Civil, grau: Bacharelado }
+          - { nome: Engenharia Elétrica, grau: Bacharelado }
+          - { nome: Energias Renováveis, grau: Tecnologia }
+          - { nome: Sistemas para Internet, grau: Tecnologia }
+      - sigla: CCA
+        nome: Centro de Ciências Agrárias
+        cursos:
+          - { nome: Engenharia Agronômica, grau: Bacharelado }
+          - { nome: Zootecnia, grau: Bacharelado }
+
+  - campus: Campus Clóvis Moura
+    cidade: Teresina
+    centros:
+      - sigla: CIES
+        nome: Centro Integrado de Ensino Superior
+        cursos:
+          - { nome: Administração, grau: Bacharelado }
+          - { nome: Ciências Contábeis, grau: Bacharelado }
+          - { nome: Direito, grau: Bacharelado }
+          - { nome: Geografia, grau: Licenciatura }
+          - { nome: História, grau: Licenciatura }
+          - { nome: Letras Português, grau: Licenciatura }
+          - { nome: Matemática, grau: Licenciatura }
+          - { nome: Pedagogia, grau: Licenciatura }
+
+  - campus: Campus Dom José Vasquez Diaz
+    cidade: Bom Jesus
+    centros:
+      - sigla: CIES
+        nome: Centro Integrado de Ensino Superior
+        cursos:
+          - { nome: Direito, grau: Bacharelado }
+          - { nome: Letras Português, grau: Licenciatura }
+          - { nome: Pedagogia, grau: Licenciatura }
+
+  - campus: Campus Heróis do Jenipapo
+    cidade: Campo Maior
+    centros:
+      - sigla: CIES
+        nome: Centro Integrado de Ensino Superior
+        cursos:
+          - { nome: Ciências Biológicas, grau: Licenciatura }
+          - { nome: História, grau: Licenciatura }
+          - { nome: Geografia, grau: Licenciatura }
+          - { nome: Pedagogia, grau: Licenciatura }
+      - sigla: Núcleo de Barras
+        nome: vinculado ao Campus de Campo Maior
+        cursos:
+          - { nome: Ciências Contábeis, grau: Bacharelado }
+          - { nome: Geografia, grau: Licenciatura }
+          - { nome: Pedagogia, grau: Licenciatura }
+
+  - campus: Campus Jesualdo Cavalcanti
+    cidade: Corrente
+    centros:
+      - sigla: CIES
+        nome: Centro Integrado de Ensino Superior
+        cursos:
+          - { nome: Direito, grau: Bacharelado }
+          - { nome: Engenharia Agronômica, grau: Bacharelado }
+          - { nome: Zootecnia, grau: Bacharelado }
+          - { nome: Ciências Biológicas, grau: Licenciatura }
+          - { nome: Pedagogia, grau: Licenciatura }
+
+  - campus: Campus Dra. Josefina Demes
+    cidade: Floriano
+    centros:
+      - sigla: CIES
+        nome: Centro Integrado de Ensino Superior
+        cursos:
+          - { nome: Administração, grau: Bacharelado }
+          - { nome: Ciências da Computação, grau: Bacharelado }
+          - { nome: Ciências Contábeis, grau: Bacharelado }
+          - { nome: Direito, grau: Bacharelado }
+          - { nome: Enfermagem, grau: Bacharelado }
+          - { nome: Psicologia, grau: Bacharelado }
+          - { nome: Ciências Biológicas, grau: Licenciatura }
+          - { nome: Educação Física, grau: Licenciatura }
+          - { nome: Letras Português, grau: Licenciatura }
+          - { nome: Pedagogia, grau: Licenciatura }
+          - { nome: Geografia, grau: Licenciatura }
+          - { nome: História, grau: Licenciatura }
+
+  - campus: Campus Possidônio Queiroz
+    cidade: Oeiras
+    centros:
+      - sigla: CIES
+        nome: Centro Integrado de Ensino Superior
+        cursos:
+          - { nome: Ciências da Computação, grau: Licenciatura }
+          - { nome: História, grau: Licenciatura }
+          - { nome: Letras Português, grau: Licenciatura }
+          - { nome: Matemática, grau: Licenciatura }
+          - { nome: Pedagogia, grau: Licenciatura }
+
+  - campus: Campus Professor Alexandre Alves de Oliveira
+    cidade: Parnaíba
+    centros:
+      - sigla: CIES
+        nome: Centro Integrado de Ensino Superior
+        cursos:
+          - { nome: Ciências da Computação, grau: Bacharelado }
+          - { nome: Direito, grau: Bacharelado }
+          - { nome: Engenharia Agronômica, grau: Bacharelado }
+          - { nome: Enfermagem, grau: Bacharelado }
+          - { nome: Odontologia, grau: Bacharelado }
+          - { nome: Ciências Biológicas, grau: Licenciatura }
+          - { nome: História, grau: Licenciatura }
+          - { nome: Letras Português, grau: Licenciatura }
+          - { nome: Letras Inglês, grau: Licenciatura }
+          - { nome: Pedagogia, grau: Licenciatura }
+          - { nome: Filosofia, grau: Não informado }
+          - { nome: Ciências Sociais, grau: Não informado }
+
+  - campus: Campus Professor Barros Araújo
+    cidade: Picos
+    centros:
+      - sigla: CIES
+        nome: Centro Integrado de Ensino Superior
+        cursos:
+          - { nome: Administração, grau: Bacharelado }
+          - { nome: Comunicação Social, grau: Bacharelado }
+          - { nome: Ciências Contábeis, grau: Bacharelado }
+          - { nome: Direito, grau: Bacharelado }
+          - { nome: Enfermagem, grau: Bacharelado }
+          - { nome: Engenharia Agronômica, grau: Bacharelado }
+          - { nome: Ciências Biológicas, grau: Licenciatura }
+          - { nome: Educação Física, grau: Licenciatura }
+          - { nome: Letras Português, grau: Licenciatura }
+          - { nome: Pedagogia, grau: Licenciatura }
+
+  - campus: Campus Prof. Antônio Giovani Alves de Sousa
+    cidade: Piripiri
+    centros:
+      - sigla: CIES
+        nome: Centro Integrado de Ensino Superior
+        cursos:
+          - { nome: Direito, grau: Bacharelado }
+          - { nome: Ciências da Computação, grau: Bacharelado }
+          - { nome: Letras Português, grau: Licenciatura }
+          - { nome: Letras Inglês, grau: Licenciatura }
+          - { nome: Física, grau: Licenciatura }
+          - { nome: Química, grau: Licenciatura }
+          - { nome: Pedagogia, grau: Licenciatura }
+
+  - campus: Campus Prof. Ariston Dias Lima
+    cidade: São Raimundo Nonato
+    centros:
+      - sigla: CIES
+        nome: Centro Integrado de Ensino Superior
+        cursos:
+          - { nome: Ciências Biológicas, grau: Licenciatura }
+          - { nome: Geografia, grau: Licenciatura }
+          - { nome: História, grau: Licenciatura }
+          - { nome: Matemática, grau: Licenciatura }
+          - { nome: Pedagogia, grau: Licenciatura }
+
+  - campus: Campus Uruçuí
+    cidade: Uruçuí
+    centros:
+      - sigla: CIES
+        nome: Centro Integrado de Ensino Superior
+        cursos:
+          - { nome: Administração, grau: Bacharelado }
+          - { nome: Engenharia Agronômica, grau: Bacharelado }
+          - { nome: Pedagogia, grau: Licenciatura }

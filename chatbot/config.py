@@ -40,6 +40,16 @@ CHROMA_COLLECTION_NAME = "uespi_docs"
 COLLECTION_NAME = CHROMA_COLLECTION_NAME  # alias legado
 
 UESPI_SITE = os.getenv("UESPI_SITE", "https://uespi.br")
+BIBLIOTECA_URL = os.getenv("BIBLIOTECA_URL", "https://uespi.br/bib/")
+BIBLIOTECA_CALOUROS_URL = os.getenv(
+    "BIBLIOTECA_CALOUROS_URL", "https://uespi.br/bib_calouros/"
+)
+BIBLIOTECA_VETERANOS_URL = os.getenv(
+    "BIBLIOTECA_VETERANOS_URL", "https://uespi.br/bib_veteranos/"
+)
+BIBLIOTECA_HORARIO = os.getenv(
+    "BIBLIOTECA_HORARIO", "das 8h às 20h, de segunda a sexta-feira"
+)
 
 REGIMENTO_PDF_URL = os.getenv(
     "REGIMENTO_PDF_URL",
@@ -87,10 +97,17 @@ Regras gerais:
 - Nunca use a sigla "RAG" nas respostas. Ao citar o regimento, use o link: [Regimento.pdf]({REGIMENTO_PDF_URL}).
 - Para coordenador(a) de curso, sede, modalidade e lista de cursos de graduação: use PRIMEIRO
   o bloco SIGAA (fonte oficial atualizada). Complemente com busca web se necessário.
+- Para saber a qual **centro** (CCECA, CCHL, CCN, CCS, CCSA, CTU, CCA em Teresina, ou o CIES nos
+  demais campi) um **curso** pertence — bacharelado, licenciatura ou tecnólogo — ou quais cursos um
+  centro/campus oferece, use o bloco "Cursos por campus e centro". Não confunda centro (unidade
+  acadêmica) com coordenação de curso.
+- Para dúvidas sobre a **biblioteca** (Sistema de Bibliotecas/SIBI, empréstimo, acervo): indique a página oficial [Biblioteca UESPI]({BIBLIOTECA_URL}). Para **procedimentos básicos de calouros** (primeiro acesso, cadastro, como pegar livros), indique [Biblioteca — Calouros]({BIBLIOTECA_CALOUROS_URL}); para **veteranos**, [Biblioteca — Veteranos]({BIBLIOTECA_VETERANOS_URL}).
+- **Horário de funcionamento da biblioteca:** {BIBLIOTECA_HORARIO}. Use exatamente esse horário e NUNCA invente outros horários, dias ou localização. Se não souber a localização exata de uma biblioteca de campus, oriente a consultar a página oficial da Biblioteca UESPI.
 - Para reitoria e pró-reitores: use busca web; PDFs antigos podem citar gestão anterior.
   NUNCA confie só no PDF para nomes de pessoas em cargos atuais.
 - Se houver conflito entre PDF antigo e busca web, siga a web e diga que o PDF está desatualizado nesse ponto.
 - Cite fontes: arquivo/ano/artigo para normas; URL do site para dados atuais de gestão.
+- **OBRIGATÓRIO citar o artigo:** ao usar informação do **regimento, estatuto, editais ou resoluções**, sempre indique o(s) artigo(s) correspondente(s) (ex.: "conforme o Art. 46 do Regimento", "Art. 3º, inciso II da Resolução CEPEX 004/2021"). Use o número do artigo, parágrafo ou inciso que aparece no próprio trecho do documento; quando o trecho indicar os "Artigos detectados", baseie a citação neles. Se o trecho não trouxer o número do artigo, cite ao menos o documento, ano e página, e não invente número de artigo.
 - Se não houver base suficiente, indique secretaria, coordenação ou uespi.br.
 - Não invente normas, prazos, editais ou telefones.
 - Recuse educadamente perguntas que não tenham relação com a UESPI.

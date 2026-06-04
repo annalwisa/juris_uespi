@@ -2,36 +2,126 @@
 # Adicione nomes como aparecem no site da UESPI
 
 campi:
+  # Teresina (capital): Campus Poeta Torquato Neto (sede) + Campus Clóvis Moura.
+  # O Torquato Neto reúne os centros CCS, CCA, CCN, CTU, CCECA, CCHL e CCSA.
   - nome: Teresina
-    aliases: [teresina, sede, campus teresina]
+    aliases:
+      [
+        teresina,
+        sede,
+        campus teresina,
+        poeta torquato neto,
+        campus poeta torquato neto,
+        torquato neto,
+        clovis moura,
+        clóvis moura,
+        campus clovis moura,
+        ccm,
+        ctu,
+        centro de tecnologia e urbanismo,
+        ccn,
+        centro de ciencias da natureza,
+        centro de ciências da natureza,
+        cchl,
+        centro de ciencias humanas e letras,
+        centro de ciências humanas e letras,
+        ccsa,
+        centro de ciencias sociais aplicadas,
+        centro de ciências sociais aplicadas,
+        cceca,
+        centro de ciencias da educacao comunicacao e artes,
+        ccs,
+        centro de ciencias da saude,
+        centro de ciências da saúde,
+        cca,
+        centro de ciencias agrarias,
+        centro de ciências agrárias,
+      ]
   - nome: Piripiri
-    aliases: [piripiri]
+    aliases:
+      [
+        piripiri,
+        antonio giovani,
+        antônio giovani,
+        giovani alves de sousa,
+        campus antonio giovani,
+      ]
   - nome: Picos
-    aliases: [picos]
+    aliases: [picos, barros araujo, barros araújo, campus barros araujo]
   - nome: Floriano
-    aliases: [floriano]
+    aliases: [floriano, josefina demes, campus josefina demes, josefina demes - floriano]
   - nome: Parnaíba
-    aliases: [parnaíba, parnaiba]
+    aliases:
+      [
+        parnaíba,
+        parnaiba,
+        alexandre alves,
+        alexandre alves de oliveira,
+        campus alexandre alves,
+      ]
   - nome: Bom Jesus
-    aliases: [bom jesus]
+    aliases:
+      [
+        bom jesus,
+        dom jose vasquez,
+        dom josé vásquez,
+        dom jose vazquez,
+        campus dom jose vasquez,
+      ]
   - nome: São Raimundo Nonato
-    aliases: [são raimundo nonato, sao raimundo nonato, srn]
+    aliases:
+      [
+        são raimundo nonato,
+        sao raimundo nonato,
+        srn,
+        ariston dias lima,
+        campus ariston dias,
+      ]
   - nome: Campo Maior
-    aliases: [campo maior]
+    aliases:
+      [
+        campo maior,
+        herois do jenipapo,
+        heróis do jenipapo,
+        campus herois do jenipapo,
+        barras,
+        nucleo de barras,
+        núcleo de barras,
+      ]
+  - nome: Uruçuí
+    aliases: [uruçuí, urucui, campus urucui, campus uruçuí]
   - nome: São João do Piauí
     aliases: [são joão do piauí, sao joao do piaui]
   - nome: Valença do Piauí
     aliases: [valença do piauí, valenca do piaui, valença, valenca]
   - nome: Corrente
-    aliases: [corrente]
+    aliases:
+      [
+        corrente,
+        jesualdo cavalcante,
+        jesualdo cavalcanti,
+        campus jesualdo cavalcante,
+      ]
   - nome: Oeiras
-    aliases: [oeiras]
+    aliases: [oeiras, possidonio queiroz, possidônio queiroz, campus possidonio queiroz]
   - nome: Paulistana
     aliases: [paulistana]
   - nome: União
     aliases: [união, uniao]
   - nome: Altos
     aliases: [altos]
+
+# Centros/núcleos que existem em vários campi — só resolvem com a cidade na pergunta.
+# CIES = Centro Integrado de Ensino Superior (tabelas de oferta da UESPI).
+centros_por_cidade:
+  - siglas:
+      - cies
+      - centro integrado de ensino superior
+    campi:
+      - Teresina # Campus Clóvis Moura
+      - Floriano
+      - Parnaíba
+      - Campo Maior
 
 # Palavras que indicam pergunta sobre pessoa/cargo no curso (dispara busca web)
 cargos_curso:
