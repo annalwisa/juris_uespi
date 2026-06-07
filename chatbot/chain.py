@@ -1,3 +1,4 @@
+from langchain_core.documents import Document
 from langchain_core.output_parsers import StrOutputParser
 from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
 from langchain_core.vectorstores import VectorStore
@@ -104,6 +105,20 @@ def answer_with_rag(
     question: str,
     history: list | None = None,
 ) -> str:
+    answer, _docs = answer_with_rag_details(vector_store, question, history)
+    return answer
+
+
+def answer_with_rag_details(
+    vector_store: VectorStore,
+    question: str,
+    history: list | None = None,
+) -> tuple[str, list[Document]]:
+    """Igual a ``answer_with_rag``, mas também retorna os trechos recuperados.
+
+    Útil para avaliação (métricas RAG) e para etapas que precisam inspecionar
+    o contexto efetivamente usado na geração da resposta.
+    """
     search_query = enhance_retrieval_query(
         question, build_retrieval_query(question, history)
     )
@@ -149,7 +164,7 @@ def answer_with_rag(
     jubilacao_context = get_jubilacao_context(question, history)
 
     chain = RAG_PROMPT | _llm() | StrOutputParser()
-    return chain.invoke(
+    answer = chain.invoke(
         {
             "history": lc_history,
             "context": context,
@@ -163,42 +178,59 @@ def answer_with_rag(
             "question": question,
         }
     )
+    return answer, docs
 
 
 def get_answer(question: str, history: list | None = None) -> str:
+    answer, _docs = get_answer_details(question, history)
+    return answer
+
+
+def get_answer_details(
+    question: str, history: list | None = None
+) -> tuple[str, list[Document]]:
+    """Resposta + trechos recuperados, aplicando os mesmos filtros de ``get_answer``.
+
+    Para perguntas que não passam pelo RAG (saudação, FAQ, moderação, fora de
+    escopo), a lista de trechos retorna vazia.
+    """
     if not OPENAI_API_KEY:
-        return "Configure OPENAI_API_KEY no arquivo .env e reinicie o aplicativo."
+        return (
+            "Configure OPENAI_API_KEY no arquivo .env e reinicie o aplicativo.",
+            [],
+        )
 
     question = question.strip()
     history = history or []
 
     if not is_message_allowed(question):
-        return moderation_response()
+        return moderation_response(), []
 
     if is_assistant_identity_question(question):
-        return assistant_name_response()
+        return assistant_name_response(), []
 
     if is_about_assistant_question(question):
-        return about_assistant_response()
+        return about_assistant_response(), []
 
     faq = get_faq_response(question, history)
     if faq is not None:
-        return faq
+        return faq, []
 
     if not is_uespi_related(question, history):
-        return refusal_response()
+        return refusal_response(), []
 
     vector_store = get_vector_store()
     if vector_store is not None:
-        return answer_with_rag(vector_store, question, history)
+        return answer_with_rag_details(vector_store, question, history)
 
     chain = CHAT_PROMPT | _llm() | StrOutputParser()
-    return chain.invoke(
+    answer = chain.invoke(
         {
             "question": question,
             "history": to_langchain_messages(history),
         }
     )
+    return answer, []
 
 
 def web_search_status_label() -> str:

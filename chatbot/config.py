@@ -18,6 +18,32 @@ CHUNK_OVERLAP = int(os.getenv("RAG_CHUNK_OVERLAP", "150"))
 RETRIEVAL_K = int(os.getenv("RAG_RETRIEVAL_K", "6"))
 RETRIEVAL_FETCH_K = int(os.getenv("RAG_RETRIEVAL_FETCH_K", "20"))
 
+# --- Melhorias de recuperação (Seção 2.3 do projeto) ---
+# Reranking com cross-encoder após a busca vetorial.
+RERANKER_ENABLED = os.getenv("RAG_RERANKER_ENABLED", "true").lower() in (
+    "1",
+    "true",
+    "yes",
+)
+RERANKER_MODEL = os.getenv("RAG_RERANKER_MODEL", "BAAI/bge-reranker-base")
+
+# Busca híbrida BM25 + denso (índice BM25 em vector_db/bm25_index.pkl).
+HYBRID_ENABLED = os.getenv("RAG_HYBRID_ENABLED", "true").lower() in (
+    "1",
+    "true",
+    "yes",
+)
+# Peso da busca densa na fusão RRF (1 - alpha = peso do BM25).
+HYBRID_ALPHA = float(os.getenv("RAG_HYBRID_ALPHA", "0.5"))
+
+# Multi-query: reescreve a pergunta em variações antes da busca.
+MULTI_QUERY_ENABLED = os.getenv("RAG_MULTI_QUERY_ENABLED", "true").lower() in (
+    "1",
+    "true",
+    "yes",
+)
+MULTI_QUERY_COUNT = int(os.getenv("RAG_MULTI_QUERY_COUNT", "2"))
+
 # pinecone | chroma (padrão: pinecone se PINECONE_API_KEY existir)
 _default_store = "pinecone" if os.getenv("PINECONE_API_KEY") else "chroma"
 VECTOR_STORE = os.getenv("VECTOR_STORE", _default_store).lower()

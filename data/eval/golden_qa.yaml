@@ -1,0 +1,51 @@
+# Conjunto de avaliação (golden set) do JurisUESPI.
+#
+# Cada item tem:
+#   - question:     pergunta do usuário (linguagem natural)
+#   - ground_truth: resposta de referência, baseada nos documentos oficiais
+#                   indexados em data/docs. Usada para Context Recall/Precision.
+#
+# Amplie este arquivo com mais perguntas representativas para resultados mais
+# robustos. Quanto mais cobertura de temas (normas, estágio, bolsas, cursos),
+# melhor a avaliação.
+
+samples:
+  - question: O que é jubilação na UESPI e quando o aluno pode perder a vaga?
+    ground_truth: >-
+      Na UESPI, o termo formal é Cancelamento da Matrícula Institucional,
+      previsto no Art. 46 do Regimento. Ele ocorre em hipóteses como não
+      renovação de matrícula, abandono de curso, esgotamento do prazo máximo de
+      integralização e demais situações previstas no artigo, levando à perda do
+      vínculo do estudante com a instituição.
+
+  - question: Qual o limite de faltas permitido por disciplina?
+    ground_truth: >-
+      O estudante pode faltar no máximo 25% da carga horária total da disciplina.
+      Ultrapassando esse limite de faltas, é reprovado por frequência,
+      independentemente das notas obtidas.
+
+  - question: Qual o valor da bolsa de iniciação científica (PIBIC)?
+    ground_truth: >-
+      O valor da bolsa de iniciação científica (PIBIC) na UESPI é de R$ 700,00
+      mensais, conforme os editais da Pró-Reitoria de Pesquisa e Pós-Graduação
+      (PROP). O valor das bolsas de monitoria também é de R$ 700,00.
+
+  - question: Como funciona o estágio supervisionado e como uma empresa pode firmar convênio?
+    ground_truth: >-
+      O estágio supervisionado na UESPI segue a Lei 11.788/2008 e a Resolução
+      CEPEX 004/2021, sendo acompanhado pela Divisão de Estágio Supervisionado
+      (DES), vinculada ao DAP/PREG. Para firmar convênio, a empresa deve seguir
+      o procedimento de abertura de convênio do DAP/DES e entrar em contato pelo
+      e-mail convenio@preg.uespi.br. A lista de instituições já conveniadas pode
+      ser consultada na planilha oficial da DES.
+
+  - question: A UESPI tem cotas? Qual lei trata disso?
+    ground_truth: >-
+      Sim. A UESPI adota o sistema de cotas regulamentado pela Lei nº 7.455/2021,
+      que estabelece a reserva de vagas nos processos seletivos da universidade
+      para os grupos previstos na legislação.
+
+  - question: A qual centro pertence o curso de Ciência da Computação em Teresina?
+    ground_truth: >-
+      O curso de Bacharelado em Ciência da Computação, em Teresina, pertence ao
+      Centro de Tecnologia e Urbanismo (CTU) da UESPI.

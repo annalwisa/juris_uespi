@@ -24,10 +24,8 @@ def test_course_center_grade_mapping():
     assert ("Medicina", "CCS", "Bacharelado") in pares
     assert ("Direito", "CCSA", "Bacharelado") in pares
     assert ("Pedagogia", "CCECA", "Licenciatura") in pares
-    # tecnólogos do CTU
     assert ("Energias Renováveis", "CTU", "Tecnologia") in pares
     assert ("Sistemas para Internet", "CTU", "Tecnologia") in pares
-    # cursos sem rótulo na página (Parnaíba)
     assert ("Filosofia", "CIES", "Não informado") in pares
     assert ("Ciências Sociais", "CIES", "Não informado") in pares
 

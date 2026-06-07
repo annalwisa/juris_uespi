@@ -78,8 +78,30 @@ VECTOR_STORE=chroma
 
 Remova ou comente `PINECONE_API_KEY`. Os vetores ficam em `vector_db/` na máquina.
 
+## Avaliação do RAG (métricas do TCC)
+
+Conjunto de perguntas em `data/eval/golden_qa.yaml`. Calcula **Context Precision**, **Context Recall**, **Faithfulness** e **Answer Relevancy**.
+
+```bash
+# Baseline (só busca densa)
+python -m chatbot.evaluate_cli --profile baseline --limit 3 --out data/eval/baseline.csv
+
+# Completo (rerank + híbrido + multi-query)
+python -m chatbot.evaluate_cli --profile full --limit 3 --out data/eval/full.csv
+```
+
+Após alterar PDFs ou ativar busca híbrida, reindexe (gera também o índice BM25):
+
+```bash
+python -m chatbot.ingest_cli --reset
+```
+
+Variáveis em `.env`: `RAG_RERANKER_ENABLED`, `RAG_HYBRID_ENABLED`, `RAG_MULTI_QUERY_ENABLED`.
+
 ## Estrutura
 
 - `chatbot/` — ingestão, RAG, Pinecone/Chroma e Gradio
+- `chatbot/evaluation.py` — métricas de avaliação
 - `data/docs/` — PDFs e textos
-- `vector_db/` — só quando `VECTOR_STORE=chroma`
+- `data/eval/` — golden set e resultados de avaliação
+- `vector_db/` — Chroma local e `bm25_index.pkl` (busca híbrida)

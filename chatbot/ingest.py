@@ -12,7 +12,8 @@ from langchain_core.documents import Document
 from langchain_core.vectorstores import VectorStore
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 
-from chatbot.config import CHUNK_OVERLAP, CHUNK_SIZE, DOCS_DIR
+from chatbot.config import CHUNK_OVERLAP, CHUNK_SIZE, DOCS_DIR, HYBRID_ENABLED
+from chatbot.hybrid import save_bm25_index
 from chatbot.metadata import enrich_chunks
 from chatbot.vectorstore import build_vector_store
 
@@ -85,7 +86,10 @@ def index_documents(*, reset: bool = False) -> VectorStore:
             "Se o arquivo for escaneado (só imagem), use PDF com texto selecionável ou OCR."
         )
 
-    return build_vector_store(chunks, reset=reset)
+    store = build_vector_store(chunks, reset=reset)
+    if HYBRID_ENABLED:
+        save_bm25_index(chunks)
+    return store
 
 
 # Compatibilidade com imports antigos
