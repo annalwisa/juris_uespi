@@ -1,0 +1,2 @@
+*.pdf linguist-generated=true
+data/docs/** linguist-documentation=true
