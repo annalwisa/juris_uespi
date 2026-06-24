@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import re
-from pathlib import Path
 
 import yaml
 
@@ -61,24 +60,34 @@ def _compound_sigla_in_question(question: str, sigla: str) -> bool:
     return s in q
 
 
+def _best_campus_in_group(
+    question: str, group: dict, entries_by_name: dict[str, dict]
+) -> tuple[int, str] | None:
+    """Melhor campus de um grupo, apenas se alguma sigla do grupo aparece."""
+    siglas = group.get("siglas", [])
+    if not any(_compound_sigla_in_question(question, s) for s in siglas):
+        return None
+
+    best: tuple[int, str] | None = None
+    for campus_nome in group.get("campi", []):
+        entry = entries_by_name.get(campus_nome)
+        if not entry:
+            continue
+        matched = _best_alias_match(question, entry)
+        if matched and (best is None or matched[0] > best[0]):
+            best = matched
+    return best
+
+
 def _extract_compound_campus(question: str) -> str | None:
     """Resolve siglas ambíguas (ex.: CIES) apenas quando a cidade também aparece."""
     best: tuple[int, str] | None = None
     entries_by_name = {e.get("nome", ""): e for e in get_campus_entries()}
 
     for group in get_compound_centers():
-        siglas = group.get("siglas", [])
-        campi_nomes = group.get("campi", [])
-        if not any(_compound_sigla_in_question(question, s) for s in siglas):
-            continue
-
-        for campus_nome in campi_nomes:
-            entry = entries_by_name.get(campus_nome)
-            if not entry:
-                continue
-            matched = _best_alias_match(question, entry)
-            if matched and (best is None or matched[0] > best[0]):
-                best = matched
+        matched = _best_campus_in_group(question, group, entries_by_name)
+        if matched and (best is None or matched[0] > best[0]):
+            best = matched
 
     return best[1] if best else None
 
@@ -139,6 +148,14 @@ def parse_academic_staff_context(question: str) -> dict:
         )
         if m:
             course = m.group(1).strip()
+
+    # Fallback: nome de curso citado livremente (ex.: "de computação em teresina").
+    # Prioriza a pergunta atual sobre o histórico embutido na query enriquecida.
+    if not course:
+        from chatbot.cursos import extract_known_course
+
+        current = question.rsplit("Pergunta atual:", 1)[-1]
+        course = extract_known_course(current) or extract_known_course(question)
 
     return {
         "is_course_staff": is_staff,

@@ -7,7 +7,6 @@ import re
 import unicodedata
 from dataclasses import asdict, dataclass
 from datetime import datetime, timedelta, timezone
-from pathlib import Path
 
 import requests
 from bs4 import BeautifulSoup
@@ -146,6 +145,15 @@ def _matches_campus(course: SigaaCourse, campus: str | None) -> bool:
     return c in sede or c in secao or sede in c
 
 
+def _course_filters(course_hint: str | None, campus: str | None):
+    """Filtros em ordem de prioridade: estrito (curso E campus) → curso → campus."""
+    yield lambda c: _matches_course(c, course_hint) and _matches_campus(c, campus)
+    if course_hint:
+        yield lambda c: _matches_course(c, course_hint)
+    if campus:
+        yield lambda c: _matches_campus(c, campus)
+
+
 def search_courses(
     *,
     course_hint: str | None = None,
@@ -153,22 +161,17 @@ def search_courses(
     limit: int = 15,
 ) -> list[SigaaCourse]:
     courses = load_courses()
-    matched = [
-        c
-        for c in courses
-        if _matches_course(c, course_hint) and _matches_campus(c, campus)
-    ]
-    if not matched and course_hint:
-        matched = [c for c in courses if _matches_course(c, course_hint)]
-    if not matched and campus:
-        matched = [c for c in courses if _matches_campus(c, campus)][:limit]
+    matched: list[SigaaCourse] = []
+    for predicate in _course_filters(course_hint, campus):
+        matched = [c for c in courses if predicate(c)]
+        if matched:
+            break
 
     return matched[:limit]
 
 
 def format_sigaa_context(courses: list[SigaaCourse], question: str = "") -> str:
     if not courses:
-        ctx = parse_academic_staff_context(question) if question else {}
         return (
             "(SIGAA: nenhum curso encontrado com os filtros informados. "
             f"Lista completa: {SIGAA_CURSOS_URL})"

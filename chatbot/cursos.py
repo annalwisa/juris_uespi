@@ -64,6 +64,82 @@ def _load_data() -> dict:
         return yaml.safe_load(f) or {"campi": [], "fonte": GRADUACAO_URL}
 
 
+# Tokens genéricos que não identificam um curso específico (aparecem em vários).
+_GENERIC_COURSE_TOKENS = frozenset(
+    {
+        "ciencias",
+        "ciencia",
+        "licenciatura",
+        "bacharelado",
+        "tecnologia",
+        "tecnologo",
+        "curso",
+        "cursos",
+        "integrado",
+        "ensino",
+        "superior",
+        "centro",
+    }
+)
+
+
+def _course_tokens(nome: str) -> list[str]:
+    return [t for t in re.split(r"[\s/\-]+", _normalize(nome)) if len(t) >= 4]
+
+
+def _distinctive_tokens(nome: str) -> list[str]:
+    return [t for t in _course_tokens(nome) if t not in _GENERIC_COURSE_TOKENS]
+
+
+@lru_cache(maxsize=1)
+def _course_name_index() -> tuple[tuple[str, tuple[str, ...]], ...]:
+    """Lista de (nome_curso, tokens_distintos) sem duplicar nomes."""
+    seen: dict[str, tuple[str, ...]] = {}
+    for *_, nome, _grau in _iter_courses():
+        if nome and nome not in seen:
+            seen[nome] = tuple(_distinctive_tokens(nome))
+    return tuple(seen.items())
+
+
+@lru_cache(maxsize=1)
+def _token_course_counts() -> dict[str, int]:
+    """Quantos cursos distintos contêm cada token (para medir raridade)."""
+    counts: dict[str, int] = {}
+    for _nome, tokens in _course_name_index():
+        for t in set(tokens):
+            counts[t] = counts.get(t, 0) + 1
+    return counts
+
+
+def extract_known_course(text: str) -> str | None:
+    """Detecta um curso conhecido citado livremente (ex.: "de computação em teresina").
+
+    Retorna o token distintivo mais específico (ex.: "computacao", "civil"), próprio
+    para ser usado como ``course_hint`` na busca do SIGAA. Complementa
+    ``extract_course_hint`` (que exige prefixos como "curso de"/"coordenador de").
+    """
+    blob = _normalize(text)
+    if not blob:
+        return None
+
+    counts = _token_course_counts()
+    best_score = 0
+    best_matched: list[str] = []
+
+    for _nome, tokens in _course_name_index():
+        matched = [t for t in tokens if re.search(rf"\b{re.escape(t)}", blob)]
+        if len(matched) > best_score:
+            best_score = len(matched)
+            best_matched = matched
+
+    if not best_matched:
+        return None
+
+    # Token mais raro entre os cursos = mais específico (ex.: "civil" antes de "engenharia").
+    best_matched.sort(key=lambda t: (counts.get(t, 1), -len(t)))
+    return best_matched[0]
+
+
 def _iter_courses():
     """Gera tuplas (cidade, campus, sigla_centro, nome_centro, curso, grau)."""
     for campus in _load_data().get("campi", []):
