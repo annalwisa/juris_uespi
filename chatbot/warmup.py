@@ -31,7 +31,14 @@ def warmup() -> None:
 
         store = get_vector_store()
         if store is not None:
-            logger.info("Vector store pronto.")
+            from chatbot.vectorstore import vector_store_count
+
+            count = vector_store_count(store)
+            logger.info("Vector store pronto (%s trechos).", count)
+        else:
+            logger.warning(
+                "Vector store indisponível — verifique OPENAI_API_KEY e Pinecone no .env."
+            )
     except Exception as exc:
         logger.warning("Falha ao pré-carregar vector store: %s", exc)
 

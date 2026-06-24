@@ -1,8 +1,18 @@
 """Mensagem de status da base documental e integrações."""
+
 import json
 
 from chatbot.chain import web_search_status_label
-from chatbot.config import CHAT_HISTORY_MAX_MESSAGES, DOCS_DIR, SIGAA_CURSOS_URL, VECTOR_STORE
+from chatbot.config import (
+    CHAT_HISTORY_MAX_MESSAGES,
+    DOCS_DIR,
+    OPENAI_API_KEY,
+    PINECONE_API_KEY,
+    PINECONE_INDEX_NAME,
+    PINECONE_NAMESPACE,
+    SIGAA_CURSOS_URL,
+    VECTOR_STORE,
+)
 from chatbot.sigaa import CACHE_FILE
 from chatbot.vectorstore import get_vector_store, store_label, vector_store_count
 
@@ -17,18 +27,33 @@ def sigaa_status() -> str:
         return "cache presente"
 
 
+def _missing_store_hint() -> str:
+    if VECTOR_STORE == "pinecone":
+        parts = []
+        if not OPENAI_API_KEY:
+            parts.append("defina `OPENAI_API_KEY`")
+        if not PINECONE_API_KEY:
+            parts.append("defina `PINECONE_API_KEY`")
+        if not parts:
+            return (
+                f"o índice `{PINECONE_INDEX_NAME}` (namespace `{PINECONE_NAMESPACE}`) "
+                "parece vazio ou inacessível. Quem mantém o projeto já deixa os PDFs "
+                "indexados no Pinecone — não é preciso rodar o ingest para testar."
+            )
+        return f"{'; '.join(parts)} no `.env`."
+    return (
+        f"coloque PDFs em `{DOCS_DIR}` e execute `python -m chatbot.ingest_cli`, "
+        "ou use Pinecone (veja o README)."
+    )
+
+
 def status_message() -> str:
     store = get_vector_store()
     backend = store_label()
     sigaa = sigaa_status()
     if store is None:
-        hint = (
-            f"Coloque PDFs em `{DOCS_DIR}` e execute `python -m chatbot.ingest_cli`."
-        )
-        if VECTOR_STORE == "pinecone":
-            hint += " Configure PINECONE_API_KEY e o índice no `.env`."
         return (
-            f"**Modo sem base documental** ({backend}). {hint} "
+            f"**Modo sem base documental** ({backend}). {_missing_store_hint()} "
             f"**SIGAA:** {sigaa}."
         )
     count = vector_store_count(store)
