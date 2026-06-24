@@ -26,12 +26,11 @@ PINECONE_INDEX_NAME=uespi-docs
 PINECONE_NAMESPACE=uespi
 ```
 
-2. **Pinecone:** em [app.pinecone.io](https://app.pinecone.io), crie um índice **serverless** com:
-   - **Dimensão:** `1536` (modelo `text-embedding-3-small`)
-   - **Métrica:** cosine  
+1. **Pinecone:** em [app.pinecone.io](https://app.pinecone.io), crie um índice **serverless** com:
+  - **Dimensão:** `1536` (modelo `text-embedding-3-small`)
+  - **Métrica:** cosine  
    Ou defina `PINECONE_CREATE_INDEX=true` para o projeto criar o índice na primeira indexação (região padrão: `aws` / `us-east-1`).
-
-3. Instale dependências:
+2. Instale dependências:
 
 ```bash
 uv sync
@@ -41,32 +40,39 @@ uv sync
 ## Uso
 
 1. Coloque PDFs em `data/docs/`.
-
 2. Envie os trechos para o Pinecone:
 
 ```bash
 python -m chatbot.ingest_cli --reset
 ```
 
-3. Inicie o chat:
+1. Inicie a **API** (backend para o frontend React):
 
 ```bash
-python -m chatbot.app
+uv run python -m chatbot.api
 ```
 
-### Interface web (React)
+A API fica em `http://127.0.0.1:8000` (porta `API_PORT` no `.env`).
 
-Na pasta irmã `juris_uespi-frontend` há uma UI em branco e azul. Suba a API e o frontend:
+2. Na pasta irmã `juris_uespi-frontend`, suba a interface:
 
 ```bash
-# Terminal 1 — API
-python -m chatbot.api
-
-# Terminal 2 — frontend (juris_uespi-frontend)
 npm install && npm run dev
 ```
 
-Abra `http://localhost:5173`.
+Abra `http://localhost:5173`. O Vite encaminha `/api/*` para a API na porta 8000.
+
+> **Não use** `python -m chatbot.app` com o frontend — esse comando sobe o Gradio, que é outra interface e não expõe `/api/chat`.
+
+### Gradio (opcional)
+
+Interface alternativa sem React:
+
+```bash
+uv run python -m chatbot.app
+```
+
+Abre em `http://127.0.0.1:7860` (porta padrão do Gradio).
 
 ## Chroma (local, sem Pinecone)
 
@@ -105,3 +111,4 @@ Variáveis em `.env`: `RAG_RERANKER_ENABLED`, `RAG_HYBRID_ENABLED`, `RAG_MULTI_Q
 - `data/docs/` — PDFs e textos
 - `data/eval/` — golden set e resultados de avaliação
 - `vector_db/` — Chroma local e `bm25_index.pkl` (busca híbrida)
+
