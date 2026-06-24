@@ -7,23 +7,33 @@ from langchain_core.messages import AIMessage, HumanMessage
 from chatbot.config import CHAT_HISTORY_MAX_MESSAGES
 
 
+def _message_text_from_dict(item: dict) -> tuple[str, str]:
+    role = item.get("role", "")
+    content = item.get("content", "")
+    if isinstance(content, list):
+        # Gradio multimodal — só texto
+        parts = [p.get("text", "") for p in content if isinstance(p, dict)]
+        content = " ".join(p for p in parts if p)
+    return role, str(content).strip()
+
+
+def _message_text_from_pair(item: list | tuple) -> tuple[str, str] | None:
+    if len(item) < 2:
+        return None
+    user, bot = item[0], item[1]
+    if user:
+        return "user", str(user).strip()
+    if bot:
+        return "assistant", str(bot).strip()
+    return None
+
+
 def _message_text(item: dict | list | tuple) -> tuple[str, str] | None:
     """Retorna (role, content) ou None."""
     if isinstance(item, dict):
-        role = item.get("role", "")
-        content = item.get("content", "")
-        if isinstance(content, list):
-            # Gradio multimodal — só texto
-            parts = [p.get("text", "") for p in content if isinstance(p, dict)]
-            content = " ".join(p for p in parts if p)
-        return role, str(content).strip()
-
-    if isinstance(item, (list, tuple)) and len(item) >= 2:
-        user, bot = item[0], item[1]
-        if user:
-            return "user", str(user).strip()
-        if bot:
-            return "assistant", str(bot).strip()
+        return _message_text_from_dict(item)
+    if isinstance(item, (list, tuple)):
+        return _message_text_from_pair(item)
     return None
 
 

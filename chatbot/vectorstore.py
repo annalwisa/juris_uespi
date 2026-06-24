@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from functools import lru_cache
+
 from langchain_chroma import Chroma
 from langchain_core.documents import Document
 from langchain_core.vectorstores import VectorStore
@@ -137,7 +139,7 @@ def build_vector_store(chunks: list[Document], *, reset: bool = False) -> Vector
     return _build_chroma(chunks, reset=reset)
 
 
-def get_vector_store() -> VectorStore | None:
+def _open_vector_store() -> VectorStore | None:
     if not OPENAI_API_KEY:
         return None
 
@@ -173,6 +175,15 @@ def get_vector_store() -> VectorStore | None:
         embedding_function=embeddings,
         persist_directory=str(VECTOR_DB_DIR),
     )
+
+
+@lru_cache(maxsize=1)
+def get_vector_store() -> VectorStore | None:
+    return _open_vector_store()
+
+
+def clear_vector_store_cache() -> None:
+    get_vector_store.cache_clear()
 
 
 def vector_store_count(store: VectorStore) -> int | str:

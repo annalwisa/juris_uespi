@@ -4,7 +4,6 @@ from __future__ import annotations
 
 import re
 import unicodedata
-from pathlib import Path
 
 import yaml
 
@@ -207,6 +206,24 @@ def is_monitoria_detail_question(question: str) -> bool:
     return detail or not valor_only
 
 
+def _enrich_blob_with_history(question: str, history: list | None) -> str:
+    """Para follow-ups curtos («e o valor?»), agrega as últimas falas do usuário."""
+    if not history or is_faltas_scenario_question(question):
+        return question
+
+    from chatbot.history import _message_text
+
+    recent_user = []
+    for item in history[-4:]:
+        parsed = _message_text(item)
+        if parsed and parsed[0] == "user" and parsed[1]:
+            recent_user.append(parsed[1])
+
+    if recent_user and len(_normalize(question).split()) <= 4:
+        return f"{' '.join(recent_user[-2:])} {question}"
+    return question
+
+
 def get_faq_response(question: str, history: list | None = None) -> str | None:
     """
     Retorna resposta fixa se a pergunta corresponder a um FAQ configurado.
@@ -216,23 +233,9 @@ def get_faq_response(question: str, history: list | None = None) -> str | None:
     faqs = cfg.get("faqs", {})
 
     if is_faltas_scenario_question(question):
-        scenario = _response_faltas_scenario(question, cfg)
-        if scenario:
-            return scenario
-        return None
+        return _response_faltas_scenario(question, cfg) or None
 
-    blob = question
-    if history and not is_faltas_scenario_question(question):
-        from chatbot.history import _message_text
-
-        recent_user = []
-        for item in history[-4:]:
-            parsed = _message_text(item)
-            if parsed and parsed[0] == "user" and parsed[1]:
-                recent_user.append(parsed[1])
-        # Só enriquece follow-ups muito curtos («e o valor?»), não cenários com número
-        if recent_user and len(_normalize(question).split()) <= 4:
-            blob = f"{' '.join(recent_user[-2:])} {question}"
+    blob = _enrich_blob_with_history(question, history)
 
     # Ordem: faltas antes de bolsa se ambos puderem coincidir
     for faq_id in ("faltas", "bolsa_valor"):

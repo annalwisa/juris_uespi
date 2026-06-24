@@ -7,9 +7,9 @@ em consultas com termos exatos (Art. 46, 004/2021, Lei 11.788).
 
 from __future__ import annotations
 
-import pickle
+import pickle  # nosec B403 - índice BM25 gerado e lido localmente pelo ingest (dado confiável)
 import re
-from pathlib import Path
+from functools import lru_cache
 
 from langchain_core.documents import Document
 
@@ -44,22 +44,29 @@ def save_bm25_index(chunks: list[Document]) -> None:
     VECTOR_DB_DIR.mkdir(parents=True, exist_ok=True)
     with BM25_INDEX_PATH.open("wb") as f:
         pickle.dump(payload, f)
+    clear_bm25_cache()
 
 
-def _load_bm25() -> tuple | None:
+@lru_cache(maxsize=1)
+def get_bm25_index() -> tuple | None:
+    """Índice BM25 em memória (invalidar após reindexar com ``clear_bm25_cache``)."""
     if not config.HYBRID_ENABLED or not BM25_INDEX_PATH.exists():
         return None
     try:
         with BM25_INDEX_PATH.open("rb") as f:
-            payload = pickle.load(f)
+            payload = pickle.load(f)  # nosec B301 - arquivo local gerado pelo próprio ingest
         return payload.get("bm25"), payload.get("documents", [])
     except Exception:
         return None
 
 
+def clear_bm25_cache() -> None:
+    get_bm25_index.cache_clear()
+
+
 def bm25_search(question: str, k: int) -> list[Document]:
     """Retorna até ``k`` trechos pelo BM25 (exclui revogados)."""
-    loaded = _load_bm25()
+    loaded = get_bm25_index()
     if not loaded:
         return []
     bm25, documents = loaded

@@ -1,6 +1,7 @@
 """Recuperação RAG com filtro de revogados e priorização por vigência/ano."""
 
 import re
+from concurrent.futures import ThreadPoolExecutor
 
 from langchain_core.documents import Document
 from langchain_core.vectorstores import VectorStore
@@ -97,6 +98,21 @@ def _dense_search(vector_store: VectorStore, question: str) -> list[Document]:
     return [d for d in docs if d.metadata.get("status") != STATUS_REVOGADO]
 
 
+def _parallel_dense_search(vector_store: VectorStore, queries: list[str]) -> list[Document]:
+    if len(queries) <= 1:
+        return _dense_search(vector_store, queries[0]) if queries else []
+
+    dense_pool: list[Document] = []
+    workers = min(len(queries), 4)
+    with ThreadPoolExecutor(max_workers=workers) as executor:
+        for docs in executor.map(
+            lambda q: _dense_search(vector_store, q),
+            queries,
+        ):
+            dense_pool.extend(docs)
+    return dense_pool
+
+
 def _dedupe_docs(docs: list[Document]) -> list[Document]:
     seen: set[str] = set()
     out: list[Document] = []
@@ -141,9 +157,7 @@ def retrieve_context(vector_store: VectorStore, question: str) -> list[Document]
         else [question]
     )
 
-    dense_pool: list[Document] = []
-    for q in queries:
-        dense_pool.extend(_dense_search(vector_store, q))
+    dense_pool = _parallel_dense_search(vector_store, queries)
     dense_pool = _dedupe_docs(dense_pool)[:RETRIEVAL_FETCH_K]
 
     if config.HYBRID_ENABLED:
@@ -162,47 +176,46 @@ def retrieve_context(vector_store: VectorStore, question: str) -> list[Document]
     return _apply_vigency_sort(docs, question)
 
 
+def _format_doc_header(index: int, doc: Document) -> str:
+    meta = doc.metadata
+    source = format_source_citation(meta.get("source", "documento"))
+    status = meta.get("status", "vigente")
+    tipo = meta.get("tipo")
+
+    header = f"[{index}] Fonte: {source}"
+    if tipo:
+        header += f" | Tipo: {tipo}"
+    if meta.get("year"):
+        header += f" | Ano: {meta.get('year')}"
+    header += f" | Status: {status}"
+    if meta.get("page"):
+        header += f" | Página: {meta.get('page')}"
+    if meta.get("substituido_por"):
+        header += f" | Ver também (mais recente): {meta.get('substituido_por')}"
+    if meta.get("nota"):
+        header += f" | Nota: {meta.get('nota')}"
+
+    if tipo in _ARTICLE_TIPOS:
+        articles = extract_articles(doc.page_content)
+        if articles:
+            header += (
+                f" | Artigos detectados: {', '.join(articles)}"
+                " (CITE o(s) artigo(s) ao usar este trecho)"
+            )
+    if status == "desatualizado":
+        header += (
+            " | ATENÇÃO: documento marcado como possivelmente desatualizado — "
+            "prefira fontes mais recentes no contexto se houver conflito."
+        )
+    return header
+
+
 def format_context(docs: list[Document]) -> str:
     if not docs:
         return "(Nenhum trecho relevante encontrado nos documentos indexados.)"
 
-    parts = []
-    for i, doc in enumerate(docs, start=1):
-        meta = doc.metadata
-        source = format_source_citation(meta.get("source", "documento"))
-        year = meta.get("year")
-        status = meta.get("status", "vigente")
-        page = meta.get("page")
-        subst = meta.get("substituido_por")
-        nota = meta.get("nota")
-        tipo = meta.get("tipo")
-
-        header = f"[{i}] Fonte: {source}"
-        if tipo:
-            header += f" | Tipo: {tipo}"
-        if year:
-            header += f" | Ano: {year}"
-        header += f" | Status: {status}"
-        if page:
-            header += f" | Página: {page}"
-        if subst:
-            header += f" | Ver também (mais recente): {subst}"
-        if nota:
-            header += f" | Nota: {nota}"
-
-        if tipo in _ARTICLE_TIPOS:
-            articles = extract_articles(doc.page_content)
-            if articles:
-                header += (
-                    f" | Artigos detectados: {', '.join(articles)}"
-                    " (CITE o(s) artigo(s) ao usar este trecho)"
-                )
-        if status == "desatualizado":
-            header += (
-                " | ATENÇÃO: documento marcado como possivelmente desatualizado — "
-                "prefira fontes mais recentes no contexto se houver conflito."
-            )
-
-        parts.append(f"{header}\n{doc.page_content}")
-
+    parts = [
+        f"{_format_doc_header(i, doc)}\n{doc.page_content}"
+        for i, doc in enumerate(docs, start=1)
+    ]
     return "\n\n---\n\n".join(parts)

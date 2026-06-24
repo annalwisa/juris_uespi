@@ -48,6 +48,15 @@ def _normalize(text: str) -> str:
     return re.sub(r"\s+", " ", lowered).strip()
 
 
+def _collect_raw_terms(data: dict) -> list[str]:
+    raw_terms: list[str] = []
+    for key in ("palavras", "frases", "termos"):
+        block = data.get(key)
+        if isinstance(block, list):
+            raw_terms.extend(str(t) for t in block if t)
+    return raw_terms
+
+
 @lru_cache(maxsize=1)
 def _moderation_rules() -> tuple[tuple[re.Pattern[str], ...], frozenset[str]]:
     if not TERMS_PATH.exists():
@@ -56,16 +65,10 @@ def _moderation_rules() -> tuple[tuple[re.Pattern[str], ...], frozenset[str]]:
     with TERMS_PATH.open(encoding="utf-8") as f:
         data = yaml.safe_load(f) or {}
 
-    raw_terms: list[str] = []
-    for key in ("palavras", "frases", "termos"):
-        block = data.get(key)
-        if isinstance(block, list):
-            raw_terms.extend(str(t) for t in block if t)
-
     patterns: list[re.Pattern[str]] = []
     compact_terms: set[str] = set()
     seen: set[str] = set()
-    for term in raw_terms:
+    for term in _collect_raw_terms(data):
         n = _normalize(term)
         if not n or n in seen:
             continue

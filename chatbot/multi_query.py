@@ -14,6 +14,45 @@ from langchain_openai import ChatOpenAI
 import chatbot.config as config
 
 
+def _coerce_text(raw) -> str:
+    if isinstance(raw, list):
+        raw = "".join(part if isinstance(part, str) else "" for part in raw)
+    return str(raw).strip()
+
+
+def _queries_from_json(text: str) -> list[str] | None:
+    """Lista de queries de um JSON; ``None`` quando o texto não é JSON válido."""
+    try:
+        data = json.loads(text)
+    except json.JSONDecodeError:
+        return None
+    if isinstance(data, dict):
+        return [q.strip() for q in data.get("queries", []) if isinstance(q, str)]
+    return []
+
+
+def _parse_queries(raw: str) -> list[str]:
+    queries = _queries_from_json(raw)
+    if queries is not None:
+        return queries
+    # Fallback: extrai o primeiro objeto JSON embutido em texto livre.
+    match = re.search(r"\{.*\}", raw, re.DOTALL)
+    if not match:
+        return []
+    return _queries_from_json(match.group()) or []
+
+
+def _dedupe_queries(question: str, queries: list[str]) -> list[str]:
+    seen = {question.strip().lower()}
+    out = [question.strip()]
+    for q in queries:
+        key = q.lower()
+        if key not in seen and q.strip():
+            seen.add(key)
+            out.append(q.strip())
+    return out
+
+
 def generate_query_variations(question: str, n: int | None = None) -> list[str]:
     """Devolve a pergunta original + até ``n`` reformulações."""
     n = n if n is not None else config.MULTI_QUERY_COUNT
@@ -30,32 +69,6 @@ def generate_query_variations(question: str, n: int | None = None) -> list[str]:
         "Responda APENAS em JSON: {{\"queries\": [\"...\"]}}.\n\n"
         f"PERGUNTA: {question}"
     )
-    raw = llm.invoke(prompt).content
-    if isinstance(raw, list):
-        raw = "".join(part if isinstance(part, str) else "" for part in raw)
-    raw = str(raw).strip()
-
-    queries: list[str] = []
-    try:
-        data = json.loads(raw)
-        if isinstance(data, dict):
-            queries = [q.strip() for q in data.get("queries", []) if isinstance(q, str)]
-    except json.JSONDecodeError:
-        match = re.search(r"\{.*\}", raw, re.DOTALL)
-        if match:
-            try:
-                data = json.loads(match.group())
-                queries = [
-                    q.strip() for q in data.get("queries", []) if isinstance(q, str)
-                ]
-            except json.JSONDecodeError:
-                pass
-
-    seen = {question.strip().lower()}
-    out = [question.strip()]
-    for q in queries:
-        key = q.lower()
-        if key not in seen and q.strip():
-            seen.add(key)
-            out.append(q.strip())
-    return out
+    raw = _coerce_text(llm.invoke(prompt).content)
+    queries = _parse_queries(raw)
+    return _dedupe_queries(question, queries)
