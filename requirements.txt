@@ -9,12 +9,14 @@ pandas
 scipy
 scikit-learn
 matplotlib
-torch
+pillow>=12.2.0  # CVE-2026-42311 e correlatas (out-of-bounds write em PSD/FITS/PDF)
+torch>=2.7.0  # CVE-2025-3000 (memory corruption em torch.jit.script)
 transformers
 tqdm
 openai
-gradio
+gradio>=6.7  # PYSEC-2026-63/64/65/66 (SSRF, path traversal, OAuth)
 fastapi
+starlette>=1.0.1  # PYSEC-2026-161 (Host header / request.url path bypass)
 uvicorn[standard]
 langchain
 langchain-core
@@ -27,7 +29,7 @@ langchain-community
 datasets==3.6.0
 google-generativeai
 anthropic
-chromadb
+chromadb>=1.5.9  # CVE-2026-45829 (RCE pre-auth via trust_remote_code)
 plotly
 jupyter-dash
 beautifulsoup4
@@ -42,6 +44,6 @@ speedtest-cli
 sentence_transformers
 rank_bm25
 feedparser
-protobuf==3.20.2
+protobuf>=5.29.5  # CVE-2025-4565 / CVE-2026-0994 (DoS por recursão no parser puro-Python)
 wandb
 jupyterlab

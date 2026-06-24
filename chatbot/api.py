@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from contextlib import asynccontextmanager
 from typing import Literal
 
 from fastapi import FastAPI
@@ -10,11 +11,20 @@ from pydantic import BaseModel, Field
 
 from chatbot.chain import get_answer
 from chatbot.status import status_message
+from chatbot.warmup import start_warmup_background
+
+
+@asynccontextmanager
+async def lifespan(_app: FastAPI):
+    start_warmup_background()
+    yield
+
 
 app = FastAPI(
     title="Chat UESPI API",
     description="Assistente sobre a Universidade Estadual do Piauí",
     version="0.1.0",
+    lifespan=lifespan,
 )
 
 app.add_middleware(
@@ -71,12 +81,19 @@ def chat(body: ChatRequest):
 
 
 def main():
+    import os
+
     import uvicorn
+
+    # Padrão restrito a loopback; defina API_HOST=0.0.0.0 explicitamente
+    # ao expor o serviço (ex.: dentro de um container).
+    host = os.getenv("API_HOST", "127.0.0.1")
+    port = int(os.getenv("API_PORT", "8000"))
 
     uvicorn.run(
         "chatbot.api:app",
-        host="0.0.0.0",
-        port=8000,
+        host=host,
+        port=port,
         reload=False,
     )
 
