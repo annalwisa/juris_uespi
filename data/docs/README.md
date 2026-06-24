@@ -1,35 +1,23 @@
 # Documentos da UESPI
 
-Coloque PDFs, `.txt` ou `.md` aqui. Depois indexe:
+PDFs usados na indexação. **Quem for só testar o chatbot não precisa mexer aqui** os trechos já estão no Pinecone (índice `uespi-docs`).
+
+Esta pasta importa para quem for **reindexar**:
 
 ```bash
 python -m chatbot.ingest_cli --reset
 ```
 
-## Documentos desatualizados
-
-Edite `manifest.yaml` nesta pasta para controlar vigência:
+## Vigência (`manifest.yaml`)
 
 | status | Comportamento |
 |--------|----------------|
 | `vigente` | Prioridade na resposta |
-| `desatualizado` | Usado só se relevante; o chat avisa que pode estar velho |
-| `revogado` | **Não entra** na busca |
+| `desatualizado` | Usado se relevante; o chat avisa |
+| `revogado` | Não entra na busca |
 
-Exemplo:
+Depois de editar o manifest, rode o `ingest_cli --reset` de novo.
 
-```yaml
-documents:
-  Guia_do_Estudante_UESPI_2019.pdf:
-    year: 2019
-    status: desatualizado
-    nota: "Conferir site da UESPI"
-```
+## Outras fontes (sem PDF)
 
-Alterou o `manifest.yaml`? Rode de novo `ingest_cli --reset`.
-
-## Busca web (reitoria e gestão atual)
-
-**Coordenador, sede e modalidade** dos cursos: consulta automática ao **SIGAA** (dados atualizados). Campi: `data/campi_cursos.yaml`. Atualizar cache: `python -m chatbot.sigaa_cli`.
-
-**Reitoria**: busca web. **Normas** (faltas, resoluções): PDFs indexados.
+Coordenação de curso: SIGAA. Campi e cursos por centro: YAML em `data/`. Reitoria: busca web. Normas: PDFs no Pinecone.

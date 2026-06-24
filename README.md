@@ -1,80 +1,67 @@
-# Chatbot UESPI
+# Juris UESPI
 
-Assistente para tirar dúvidas sobre a **Universidade Estadual do Piauí (UESPI)**, com **RAG** (busca nos PDFs + resposta fundamentada) via LangChain, OpenAI e **Pinecone** (ou Chroma local).
+Chatbot para a comunidade da **Universidade Estadual do Piauí**. O foco é responder dúvidas acadêmicas com base em documentos oficiais (regimento, resoluções, editais) e em fontes atualizadas do site da universidade, coordenação de cursos no SIGAA, direção de centros e campi na agenda telefônica, e busca web quando faz sentido.
 
-### RAG e documentos desatualizados
+Projeto desenvolvido no contexto do meu TCC. A interface em React está em [annalwisa/juris_uespi-frontend](https://github.com/annalwisa/juris_uespi-frontend); este repositório é o backend.
 
-- Busca **20 trechos** similares e usa os **6** mais relevantes após priorizar ano e vigência.
-- Configure `data/docs/manifest.yaml` para marcar PDFs como `vigente`, `desatualizado` ou `revogado`.
-- O modelo prioriza normas mais recentes e avisa quando usa fonte antiga.
-- **SIGAA** (oficial): lista de cursos de graduação com coordenador, sede e modalidade — [SIGAA público](https://sigaa.uespi.br/sigaa/public/curso/lista.jsf?nivel=G&aba=p-ensino). Cache local 24h; atualizar com `python -m chatbot.sigaa_cli`.
-- **Busca web** (`ddgs`): reitoria e complemento. Modo: `WEB_SEARCH_MODE=auto` no `.env`.
-- **Estágios supervisionados** (PREG/DAP/DES): cobertos pelos PDFs indexados (Lei 11.788/2008, Resolução CEPEX 004/2021, Portaria 329/2020, Procedimento de Convênio) + página oficial [uespi.br/preg-dap-des](https://uespi.br/preg-dap-des/) e [planilha pública de instituições conveniadas](https://docs.google.com/spreadsheets/d/1G6es_rE9ZhGXhaiJ2LwDikbsv_ejPAV91GYAZARx3H0/edit?pli=1&gid=659220882#gid=659220882). E-mail para abrir convênio: `convenio@preg.uespi.br`.
+**Stack:** Python, LangChain, OpenAI, Pinecone (ou Chroma local), FastAPI.
 
-## Configuração
+## Testar sem indexar PDFs
 
-1. Crie o arquivo `.env` na raiz (copie de `.env.example`):
+Os documentos já estão no **Pinecone** (índice `uespi-docs`, namespace `uespi`). Quem for só testar não precisa colocar PDFs em `data/docs/` nem rodar o `ingest_cli`.
 
-```env
-OPENAI_API_KEY=sua_chave_openai
-OPENAI_CHAT_MODEL=gpt-4o-mini
-OPENAI_EMBEDDING_MODEL=text-embedding-3-small
-
-VECTOR_STORE=pinecone
-PINECONE_API_KEY=sua_chave_pinecone
-PINECONE_INDEX_NAME=uespi-docs
-PINECONE_NAMESPACE=uespi
-```
-
-1. **Pinecone:** em [app.pinecone.io](https://app.pinecone.io), crie um índice **serverless** com:
-  - **Dimensão:** `1536` (modelo `text-embedding-3-small`)
-  - **Métrica:** cosine  
-   Ou defina `PINECONE_CREATE_INDEX=true` para o projeto criar o índice na primeira indexação (região padrão: `aws` / `us-east-1`).
-2. Instale dependências:
+1. Copie `.env.example` para `.env`
+2. Preencha `OPENAI_API_KEY` e `PINECONE_API_KEY`
+3. Deixe `VECTOR_STORE=pinecone` (padrão quando a chave do Pinecone existe)
 
 ```bash
 uv sync
-# ou: pip install -r requirements.txt
-```
-
-## Uso
-
-1. Coloque PDFs em `data/docs/`.
-2. Envie os trechos para o Pinecone:
-
-```bash
-python -m chatbot.ingest_cli --reset
-```
-
-1. Inicie a **API** (backend para o frontend React):
-
-```bash
 uv run python -m chatbot.api
 ```
 
-A API fica em `http://127.0.0.1:8000` (porta `API_PORT` no `.env`).
+Confira em `http://127.0.0.1:8000/api/status` se aparece **Base ativa** com a contagem de trechos.
 
-2. Na pasta irmã `juris_uespi-frontend`, suba a interface:
+### Frontend
+
+Clone o repositório:
 
 ```bash
+git clone https://github.com/annalwisa/juris_uespi-frontend.git
+cd juris_uespi-frontend
 npm install && npm run dev
 ```
 
 Abra `http://localhost:5173`. O Vite encaminha `/api/*` para a API na porta 8000.
 
-> **Não use** `python -m chatbot.app` com o frontend — esse comando sobe o Gradio, que é outra interface e não expõe `/api/chat`.
+> O comando `python -m chatbot.app` sobe o Gradio, que não expõe `/api/chat`. Com o React, use só a API acima.
 
-### Gradio (opcional)
-
-Interface alternativa sem React:
+### Gradio
 
 ```bash
 uv run python -m chatbot.app
 ```
 
-Abre em `http://127.0.0.1:7860` (porta padrão do Gradio).
+Abre em `http://127.0.0.1:7860`.
 
-## Chroma (local, sem Pinecone)
+## Chave do Pinecone
+
+Quem for rodar o backend na própria máquina precisa da chave. Opções:
+
+- **API hospedada** (recomendado para quem só quer testar a interface): você sobe este backend com a chave no servidor; o tester usa o frontend apontando para essa URL, sem Pinecone no `.env` dele.
+
+Para só consumir o índice já populado, precisa da chave com acesso ao projeto onde está o índice `uespi-docs`.
+
+## Reindexar
+
+Ao mudar arquivos em `data/docs/` ou recriar o índice:
+
+```bash
+python -m chatbot.ingest_cli --reset
+```
+
+**não obrigatório** para quem só consome o índice no Pinecone. Status de vigência por arquivo: `data/docs/manifest.yaml`.
+
+## Chroma local (sem Pinecone)
 
 No `.env`:
 
@@ -82,33 +69,39 @@ No `.env`:
 VECTOR_STORE=chroma
 ```
 
-Remova ou comente `PINECONE_API_KEY`. Os vetores ficam em `vector_db/` na máquina.
+Aí sim é preciso indexar localmente, os vetores vão para `vector_db/`. Sem `PINECONE_API_KEY`, o padrão já cai no Chroma.
 
-## Avaliação do RAG (métricas do TCC)
+## De onde vêm as respostas
 
-Conjunto de perguntas em `data/eval/golden_qa.yaml`. Calcula **Context Precision**, **Context Recall**, **Faithfulness** e **Answer Relevancy**.
+RAG sobre os PDFs indexados (Pinecone ou Chroma). Além disso:
+
+- **SIGAA** — cursos de graduação (coordenador, sede, modalidade). Cache 24h; `python -m chatbot.sigaa_cli` para atualizar
+- **Agenda telefônica** — diretores de centro e campus
+- **Busca web** — reitoria e complementos (`WEB_SEARCH_MODE`: `auto`, `always`, `off`)
+- **FAQ** fixo em `data/faq_respostas.yaml`
+
+Com Pinecone, a busca híbrida (BM25) só entra se você tiver rodado o ingest localmente, sem isso, funciona só a busca densa, que é o caso normal para quem testa.
+
+## Avaliação
+
+Perguntas em `data/eval/golden_qa.yaml`:
 
 ```bash
-# Baseline (só busca densa)
 python -m chatbot.evaluate_cli --profile baseline --limit 3 --out data/eval/baseline.csv
-
-# Completo (rerank + híbrido + multi-query)
 python -m chatbot.evaluate_cli --profile full --limit 3 --out data/eval/full.csv
 ```
 
-Após alterar PDFs ou ativar busca híbrida, reindexe (gera também o índice BM25):
+## Pastas
 
-```bash
-python -m chatbot.ingest_cli --reset
-```
 
-Variáveis em `.env`: `RAG_RERANKER_ENABLED`, `RAG_HYBRID_ENABLED`, `RAG_MULTI_QUERY_ENABLED`.
+| Pasta         | Conteúdo                                    |
+| ------------- | ------------------------------------------- |
+| `chatbot/`    | API, RAG, ingestão, integrações             |
+| `data/docs/`  | PDFs (para reindexar; opcional para testar) |
+| `data/eval/`  | golden set e resultados                     |
+| `data/cache/` | cache SIGAA e agenda telefônica             |
+| `vector_db/`  | Chroma e BM25 (modo local)                  |
+| `tests/`      | testes automatizados                        |
 
-## Estrutura
 
-- `chatbot/` — ingestão, RAG, Pinecone/Chroma e Gradio
-- `chatbot/evaluation.py` — métricas de avaliação
-- `data/docs/` — PDFs e textos
-- `data/eval/` — golden set e resultados de avaliação
-- `vector_db/` — Chroma local e `bm25_index.pkl` (busca híbrida)
-
+Variáveis completas: `.env.example`.
