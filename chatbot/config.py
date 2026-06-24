@@ -44,6 +44,13 @@ MULTI_QUERY_ENABLED = os.getenv("RAG_MULTI_QUERY_ENABLED", "true").lower() in (
 )
 MULTI_QUERY_COUNT = int(os.getenv("RAG_MULTI_QUERY_COUNT", "2"))
 
+# Pré-carrega reranker, vector store, BM25 e SIGAA ao iniciar a API.
+RAG_PRELOAD_ON_STARTUP = os.getenv("RAG_PRELOAD_ON_STARTUP", "true").lower() in (
+    "1",
+    "true",
+    "yes",
+)
+
 # pinecone | chroma (padrão: pinecone se PINECONE_API_KEY existir)
 _default_store = "pinecone" if os.getenv("PINECONE_API_KEY") else "chroma"
 VECTOR_STORE = os.getenv("VECTOR_STORE", _default_store).lower()
@@ -90,6 +97,12 @@ SIGAA_CACHE_HOURS = int(os.getenv("SIGAA_CACHE_HOURS", "24"))
 # Alguns ambientes Windows falham na verificação SSL do SIGAA
 SIGAA_SSL_VERIFY = os.getenv("SIGAA_SSL_VERIFY", "false").lower() in ("1", "true", "yes")
 
+GESTAO_AGENDA_URL = os.getenv(
+    "GESTAO_AGENDA_URL",
+    "https://uespi.br/agenda-telefonica/",
+)
+GESTAO_CACHE_HOURS = int(os.getenv("GESTAO_CACHE_HOURS", os.getenv("SIGAA_CACHE_HOURS", "24")))
+
 SIGPROP_PESQUISA_URL = os.getenv(
     "SIGPROP_PESQUISA_URL",
     "https://sistemas2.uespi.br/sigprop/index_pesquisa.php",
@@ -129,6 +142,10 @@ Regras gerais:
   acadêmica) com coordenação de curso.
 - Para dúvidas sobre a **biblioteca** (Sistema de Bibliotecas/SIBI, empréstimo, acervo): indique a página oficial [Biblioteca UESPI]({BIBLIOTECA_URL}). Para **procedimentos básicos de calouros** (primeiro acesso, cadastro, como pegar livros), indique [Biblioteca — Calouros]({BIBLIOTECA_CALOUROS_URL}); para **veteranos**, [Biblioteca — Veteranos]({BIBLIOTECA_VETERANOS_URL}).
 - **Horário de funcionamento da biblioteca:** {BIBLIOTECA_HORARIO}. Use exatamente esse horário e NUNCA invente outros horários, dias ou localização. Se não souber a localização exata de uma biblioteca de campus, oriente a consultar a página oficial da Biblioteca UESPI.
+- Para **diretor(a) de centro** (CCECA, CCHL, CCN, CCS, CCSA, CTU, CCA) ou **diretor(a) de campus**:
+  use PRIMEIRO o bloco "Gestão de centros e campi" (agenda telefônica oficial em uespi.br).
+  Não confunda com coordenador(a) de curso (SIGAA). Se o usuário perguntar "diretor do CTU",
+  responda com a diretora do centro, não invente nomes.
 - Para reitoria e pró-reitores: use busca web; PDFs antigos podem citar gestão anterior.
   NUNCA confie só no PDF para nomes de pessoas em cargos atuais.
 - Se houver conflito entre PDF antigo e busca web, siga a web e diga que o PDF está desatualizado nesse ponto.

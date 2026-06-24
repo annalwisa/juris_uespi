@@ -28,6 +28,18 @@ ACADEMIC_TERMS = (
     "coordenadora",
     "coordenação",
     "coordenacao",
+    "diretor",
+    "diretora",
+    "direção",
+    "direcao",
+    "cceca",
+    "cchl",
+    "ccn",
+    "ccs",
+    "ccsa",
+    "ctu",
+    "cca",
+    "cies",
     "regimento",
     "resolução",
     "resolucao",
@@ -262,6 +274,46 @@ def _conversation_was_uespi(history: list | None) -> bool:
     )
 
 
+def _uespi_followup_verdict(question: str, history: list | None) -> bool | None:
+    """Follow-up na mesma conversa sobre UESPI (ex.: "e em Teresina?").
+
+    Retorna ``None`` quando a conversa anterior não tratava da UESPI, deixando
+    a decisão para as demais regras.
+    """
+    if not _conversation_was_uespi(history):
+        return None
+    if _is_clearly_off_topic(question) and not _has_academic_term(question):
+        return False
+    return True
+
+
+def _is_assistant_metadata_question(q: str) -> bool:
+    return is_assistant_identity_question(q) or is_about_assistant_question(q)
+
+
+def _has_direct_uespi_marker(q: str, history: list | None) -> bool:
+    combined = f"{_text_from_history(history)} {q}"
+    return (
+        _has_uespi_marker(q)
+        or _has_uespi_marker(combined)
+        or _has_campus_marker(q)
+    )
+
+
+def _is_piaui_teresina_question(q: str) -> bool:
+    n = _normalize(q)
+    return any(x in n for x in ("piauí", "piaui", "teresina"))
+
+
+def _academic_scope_verdict(q: str) -> bool:
+    """Normas/faltas/matrícula sem citar UESPI; ou menção a Piauí/Teresina."""
+    if _is_clearly_off_topic(q):
+        return False
+    if _has_academic_term(q):
+        return True
+    return _is_piaui_teresina_question(q)
+
+
 def is_uespi_related(question: str, history: list | None = None) -> bool:
     """
     True se a pergunta (ou o histórico recente) for sobre a UESPI.
@@ -271,41 +323,17 @@ def is_uespi_related(question: str, history: list | None = None) -> bool:
     if not q:
         return False
 
-    if is_assistant_identity_question(q) or is_about_assistant_question(q):
+    if _is_assistant_metadata_question(q):
         return True
 
-    combined = f"{_text_from_history(history)} {q}"
-
-    if _has_uespi_marker(q) or _has_uespi_marker(combined):
+    if _has_direct_uespi_marker(q, history):
         return True
 
-    if _has_campus_marker(q):
-        return True
+    followup = _uespi_followup_verdict(q, history)
+    if followup is not None:
+        return followup
 
-    # Follow-up na mesma conversa sobre UESPI (ex.: "e em Teresina?")
-    if _conversation_was_uespi(history):
-        if _is_clearly_off_topic(q) and not _has_academic_term(q):
-            return False
-        return True
-
-    n = _normalize(q)
-
-    if _is_clearly_off_topic(q):
-        return False
-
-    # Assistente exclusivo UESPI: normas, faltas, matrícula etc. não exigem citar "UESPI"
-    if _has_academic_term(q):
-        return True
-
-    # Termos acadêmicos + Piauí/Teresina
-    if any(x in n for x in ("piauí", "piaui", "teresina")):
-        return True
-
-    # Saudação ou mensagem muito curta sem conteúdo acadêmico
-    if len(n.split()) <= 3 and not _conversation_was_uespi(history):
-        return False
-
-    return False
+    return _academic_scope_verdict(q)
 
 
 def refusal_response() -> str:

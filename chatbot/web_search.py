@@ -2,12 +2,14 @@
 
 from __future__ import annotations
 
+import logging
 import warnings
 from dataclasses import dataclass
 
 from langchain_core.documents import Document
 
 from chatbot.campi import parse_academic_staff_context
+from chatbot.gestao import parse_gestao_context
 from chatbot.config import (
     TAVILY_API_KEY,
     UESPI_SITE,
@@ -15,6 +17,8 @@ from chatbot.config import (
     WEB_SEARCH_MODE,
 )
 from chatbot.metadata import STATUS_DESATUALIZADO
+
+logger = logging.getLogger(__name__)
 
 CURRENT_INFO_KEYWORDS = (
     "reitor",
@@ -38,6 +42,10 @@ CURRENT_INFO_KEYWORDS = (
     "mandato",
     "exerce",
     "dirigente",
+    "diretor",
+    "diretora",
+    "direção",
+    "direcao",
     "chefe",
     "presidente",
     "contato do",
@@ -125,49 +133,50 @@ def should_search_web(question: str, rag_docs: list[Document]) -> bool:
     return False
 
 
-def build_queries(question: str) -> list[str]:
-    q = question.strip()
-    queries: list[str] = [
-        f"UESPI {q}",
-        f"Universidade Estadual do Piauí {q}",
-    ]
+def _course_staff_queries(
+    course: str | None, campus: str | None
+) -> tuple[str, list[str]]:
+    """Query principal (prepend) + queries complementares (append)."""
+    parts = ["UESPI", f"coordenador curso {course}" if course else "coordenador curso"]
+    if campus:
+        parts.append(f"campus {campus}")
+    primary = " ".join(parts)
 
-    ctx = parse_academic_staff_context(question)
-    campus = ctx.get("campus")
-    course = ctx.get("course")
+    if course and campus:
+        extra = [
+            f"UESPI {course} coordenação campus {campus} site:uespi.br",
+            f"UESPI coordenador {course} {campus}",
+        ]
+    elif course:
+        extra = [f"UESPI coordenação curso {course} site:uespi.br"]
+    elif campus:
+        extra = [
+            f"UESPI cursos campus {campus} coordenador site:uespi.br",
+            f"UESPI campus {campus} coordenação cursos",
+        ]
+    else:
+        extra = []
+    return primary, extra
 
-    if ctx["is_course_staff"]:
-        parts = ["UESPI"]
-        if course:
-            parts.append(f"coordenador curso {course}")
-        else:
-            parts.append("coordenador curso")
-        if campus:
-            parts.append(f"campus {campus}")
-        queries.insert(0, " ".join(parts))
 
-        if course and campus:
-            queries.append(
-                f"UESPI {course} coordenação campus {campus} site:uespi.br"
-            )
-            queries.append(
-                f"UESPI coordenador {course} {campus}"
-            )
-        elif course:
-            queries.append(f"UESPI coordenação curso {course} site:uespi.br")
-        elif campus:
-            queries.append(f"UESPI cursos campus {campus} coordenador site:uespi.br")
-            queries.append(f"UESPI campus {campus} coordenação cursos")
+def _leadership_queries(question: str) -> tuple[list[str], list[str]]:
+    """(prepend, append) para perguntas sobre direção/reitoria."""
+    gestao = parse_gestao_context(question)
+    if gestao.get("centro"):
+        centro = gestao["centro"]
+        sigla = centro.get("sigla", "")
+        nome = centro.get("nome", "")
+        return [
+            f"UESPI {sigla} {nome} diretor diretora site:uespi.br",
+            f"UESPI {sigla} direção centro site:uespi.br",
+        ], []
+    if gestao.get("campus"):
+        cidade = gestao["campus"].get("cidade", "")
+        return [f"UESPI campus {cidade} diretor diretora site:uespi.br"], []
+    return [], ["UESPI reitor atual", "UESPI reitoria pró-reitor"]
 
-    elif is_leadership_or_current_info_question(question):
-        queries.extend(
-            [
-                "UESPI reitor atual",
-                "UESPI reitoria pró-reitor",
-            ]
-        )
 
-    # deduplicate preserving order
+def _dedupe_preserving_order(queries: list[str]) -> list[str]:
     seen: set[str] = set()
     unique: list[str] = []
     for query in queries:
@@ -176,6 +185,22 @@ def build_queries(question: str) -> list[str]:
             seen.add(key)
             unique.append(query)
     return unique
+
+
+def build_queries(question: str) -> list[str]:
+    q = question.strip()
+    base = [f"UESPI {q}", f"Universidade Estadual do Piauí {q}"]
+
+    ctx = parse_academic_staff_context(question)
+    if ctx["is_course_staff"]:
+        primary, append = _course_staff_queries(ctx.get("course"), ctx.get("campus"))
+        prepend = [primary]
+    elif is_leadership_or_current_info_question(question):
+        prepend, append = _leadership_queries(question)
+    else:
+        prepend, append = [], []
+
+    return _dedupe_preserving_order(prepend + base + append)
 
 
 def _prioritize_official(results: list[WebResult]) -> list[WebResult]:
@@ -262,48 +287,78 @@ def _run_tavily(question: str, max_results: int) -> list[WebResult]:
     return results
 
 
-def search_uespi_web(question: str) -> list[WebResult]:
-    ctx = parse_academic_staff_context(question)
-    max_results = WEB_SEARCH_MAX_RESULTS + (2 if ctx["is_course_staff"] else 0)
-    per_query = max(2, max_results // 2)
+def _add_unique(
+    results: list[WebResult],
+    combined: list[WebResult],
+    seen: set[str],
+    cap: int | None = None,
+) -> bool:
+    """Acrescenta resultados inéditos (por URL). True quando atinge ``cap``."""
+    for r in results:
+        if r.url not in seen:
+            seen.add(r.url)
+            combined.append(r)
+        if cap is not None and len(combined) >= cap:
+            return True
+    return False
 
-    combined: list[WebResult] = []
-    seen: set[str] = set()
 
-    if TAVILY_API_KEY:
-        try:
-            for r in _run_tavily(question, max_results):
-                if r.url not in seen:
-                    seen.add(r.url)
-                    combined.append(r)
-            if combined:
-                combined = _prioritize_official(combined)
-                relevant = [r for r in combined if _is_uespi_relevant(r)]
-                if relevant:
-                    combined = relevant
-                return combined[:max_results]
-        except Exception:
-            pass
-
-    for query in build_queries(question):
-        try:
-            batch = _run_duckduckgo(query, per_query)
-        except Exception:
-            continue
-        for r in batch:
-            if r.url not in seen:
-                seen.add(r.url)
-                combined.append(r)
-            if len(combined) >= max_results * 2:
-                break
-        if len(combined) >= max_results:
-            break
-
+def _finalize_results(combined: list[WebResult], max_results: int) -> list[WebResult]:
     combined = _prioritize_official(combined)
     relevant = [r for r in combined if _is_uespi_relevant(r)]
     if relevant:
         combined = relevant
     return combined[:max_results]
+
+
+def _tavily_results(question: str, max_results: int) -> list[WebResult] | None:
+    """Resultados do Tavily, ou ``None`` se indisponível/falho/vazio (faz fallback)."""
+    if not TAVILY_API_KEY:
+        return None
+    try:
+        batch = _run_tavily(question, max_results)
+    except Exception:
+        logger.warning(
+            "Busca Tavily falhou; usando DuckDuckGo como fallback.", exc_info=True
+        )
+        return None
+
+    combined: list[WebResult] = []
+    _add_unique(batch, combined, seen=set())
+    if not combined:
+        return None
+    return _finalize_results(combined, max_results)
+
+
+def _duckduckgo_results(
+    question: str, max_results: int, per_query: int
+) -> list[WebResult]:
+    combined: list[WebResult] = []
+    seen: set[str] = set()
+    for query in build_queries(question):
+        try:
+            batch = _run_duckduckgo(query, per_query)
+        except Exception:
+            logger.debug(
+                "Busca DuckDuckGo falhou para a query %r.", query, exc_info=True
+            )
+            continue
+        _add_unique(batch, combined, seen, cap=max_results * 2)
+        if len(combined) >= max_results:
+            break
+    return _finalize_results(combined, max_results)
+
+
+def search_uespi_web(question: str) -> list[WebResult]:
+    ctx = parse_academic_staff_context(question)
+    max_results = WEB_SEARCH_MAX_RESULTS + (2 if ctx["is_course_staff"] else 0)
+    per_query = max(2, max_results // 2)
+
+    tavily = _tavily_results(question, max_results)
+    if tavily is not None:
+        return tavily
+
+    return _duckduckgo_results(question, max_results, per_query)
 
 
 def format_web_context(results: list[WebResult], question: str = "") -> str:

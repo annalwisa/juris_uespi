@@ -1,3 +1,6 @@
+from concurrent.futures import ThreadPoolExecutor
+from functools import lru_cache
+
 from langchain_core.documents import Document
 from langchain_core.output_parsers import StrOutputParser
 from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
@@ -23,6 +26,7 @@ from chatbot.cursos import get_cursos_context
 from chatbot.alerts import get_contextual_alerts
 from chatbot.estagio import enhance_estagio_query, get_estagio_context
 from chatbot.jubilacao import enhance_jubilacao_query, get_jubilacao_context
+from chatbot.gestao import get_gestao_context, parse_gestao_context
 from chatbot.programs import enhance_retrieval_query, get_programs_context
 from chatbot.guard import is_uespi_related, refusal_response
 from chatbot.moderation import is_message_allowed, moderation_response
@@ -52,6 +56,9 @@ RAG_PROMPT = ChatPromptTemplate.from_messages(
 
 ## Cursos por campus e centro (a qual centro/CIES cada curso pertence: bacharelado, licenciatura, tecnólogo)
 {cursos_context}
+
+## Gestão de centros e campi (diretor(a) — fonte oficial uespi.br; NÃO confundir com coordenação de curso)
+{gestao_context}
 
 ## Busca na web (reitoria e complemento quando o SIGAA não bastar)
 {web_context}
@@ -92,12 +99,59 @@ NO_SIGAA = (
 )
 
 
+@lru_cache(maxsize=1)
 def _llm():
     return ChatOpenAI(model=CHAT_MODEL, api_key=OPENAI_API_KEY, temperature=0.2)
 
 
 def _sigaa_has_results(sigaa_context: str) -> bool:
     return "[SIGAA 1]" in sigaa_context
+
+
+def _build_search_query(question: str, history: list | None) -> str:
+    search_query = enhance_retrieval_query(
+        question, build_retrieval_query(question, history)
+    )
+    search_query = enhance_estagio_query(question, search_query)
+    search_query = enhance_jubilacao_query(question, search_query)
+    if is_monitoria_detail_question(question):
+        search_query = (
+            f"{search_query} Edita-de-Monitorias edital monitoria requisitos inscricao"
+        )
+    return search_query
+
+
+def _resolve_sigaa_context(sigaa_future) -> str:
+    try:
+        sig_ctx = sigaa_future.result()
+        return sig_ctx or NO_SIGAA
+    except Exception as e:
+        return f"(Erro ao consultar SIGAA: {e}. Consulte {SIGAA_CURSOS_URL})"
+
+
+def _should_run_web(search_query: str, docs: list[Document], sigaa_context: str) -> bool:
+    if not should_search_web(search_query, docs):
+        return False
+    if is_course_staff_question(search_query) and _sigaa_has_results(sigaa_context):
+        return False
+    gestao_ctx = parse_gestao_context(search_query)
+    if gestao_ctx.get("is_gestao") and (
+        gestao_ctx.get("centro") or gestao_ctx.get("campus") or gestao_ctx.get("nucleo")
+    ):
+        return False
+    return True
+
+
+def _resolve_web_context(
+    search_query: str, docs: list[Document], sigaa_context: str
+) -> str:
+    if not _should_run_web(search_query, docs, sigaa_context):
+        return NO_WEB
+    try:
+        results = search_uespi_web(search_query)
+        return format_web_context(results, search_query)
+    except Exception as e:
+        return f"(Erro na busca web: {e}. Para reitoria, consulte uespi.br.)"
 
 
 def answer_with_rag(
@@ -119,49 +173,30 @@ def answer_with_rag_details(
     Útil para avaliação (métricas RAG) e para etapas que precisam inspecionar
     o contexto efetivamente usado na geração da resposta.
     """
-    search_query = enhance_retrieval_query(
-        question, build_retrieval_query(question, history)
-    )
-    search_query = enhance_estagio_query(question, search_query)
-    search_query = enhance_jubilacao_query(question, search_query)
-    if is_monitoria_detail_question(question):
-        search_query = f"{search_query} Edita-de-Monitorias edital monitoria requisitos inscricao"
+    search_query = _build_search_query(question, history)
 
-    docs = retrieve_context(vector_store, search_query)
+    with ThreadPoolExecutor(max_workers=6) as executor:
+        docs_future = executor.submit(retrieve_context, vector_store, search_query)
+        sigaa_future = executor.submit(get_sigaa_context_for_question, search_query)
+        cursos_future = executor.submit(get_cursos_context, question, history)
+        programs_future = executor.submit(get_programs_context, question, history)
+        estagio_future = executor.submit(get_estagio_context, question, history)
+        jubilacao_future = executor.submit(get_jubilacao_context, question, history)
+        gestao_future = executor.submit(get_gestao_context, question, history)
+        alerts_future = executor.submit(get_contextual_alerts, question, history)
+
+        docs = docs_future.result()
+        sigaa_context = _resolve_sigaa_context(sigaa_future)
+        cursos_context = cursos_future.result()
+        programs_context = programs_future.result()
+        estagio_context = estagio_future.result()
+        jubilacao_context = jubilacao_future.result()
+        gestao_context = gestao_future.result()
+        alerts = alerts_future.result()
+
     context = format_context(docs)
-
-    sigaa_context = NO_SIGAA
-    try:
-        sig_ctx = get_sigaa_context_for_question(search_query)
-        if sig_ctx:
-            sigaa_context = sig_ctx
-    except Exception as e:
-        sigaa_context = (
-            f"(Erro ao consultar SIGAA: {e}. Consulte {SIGAA_CURSOS_URL})"
-        )
-
-    web_context = NO_WEB
-    run_web = should_search_web(search_query, docs)
-    if run_web and is_course_staff_question(search_query) and _sigaa_has_results(
-        sigaa_context
-    ):
-        run_web = False
-
-    if run_web:
-        try:
-            results = search_uespi_web(search_query)
-            web_context = format_web_context(results, search_query)
-        except Exception as e:
-            web_context = (
-                f"(Erro na busca web: {e}. Para reitoria, consulte uespi.br.)"
-            )
-
+    web_context = _resolve_web_context(search_query, docs, sigaa_context)
     lc_history = to_langchain_messages(history)
-    alerts = get_contextual_alerts(question, history)
-    cursos_context = get_cursos_context(question, history)
-    programs_context = get_programs_context(question, history)
-    estagio_context = get_estagio_context(question, history)
-    jubilacao_context = get_jubilacao_context(question, history)
 
     chain = RAG_PROMPT | _llm() | StrOutputParser()
     answer = chain.invoke(
@@ -175,6 +210,7 @@ def answer_with_rag_details(
             "programs_context": programs_context,
             "estagio_context": estagio_context,
             "jubilacao_context": jubilacao_context,
+            "gestao_context": gestao_context,
             "question": question,
         }
     )
